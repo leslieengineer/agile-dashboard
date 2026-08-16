@@ -1,0 +1,27 @@
+[Unit]
+Description=Matter MQTT Gateway
+After=network-online.target mosquitto.service otbr-agent.service
+Wants=network-online.target otbr-agent.service
+
+[Service]
+Type=simple
+User=matter-gateway
+Group=matter-gateway
+WorkingDirectory=/opt/matter-gateway
+EnvironmentFile=/etc/matter-gateway/gateway.env
+ExecStart=/opt/node20/bin/node /opt/matter-gateway/gateway.cjs
+Restart=on-failure
+RestartSec=3
+
+NoNewPrivileges=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+MemoryMax=256M
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,25 @@
+[Unit]
+Description=Matter Smart Home WebUI
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=matter-webui
+Group=matter-webui
+ExecStart=/usr/bin/python3 -m http.server 8080 --bind 0.0.0.0 --directory /opt/matter-webui
+Restart=on-failure
+RestartSec=3
+
+NoNewPrivileges=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+MemoryMax=64M
+
+[Install]
+WantedBy=multi-user.target

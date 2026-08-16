@@ -1,0 +1,9 @@
+user gateway
+topic read home/control/tx
+topic write home/control/rx
+topic write home/control/status
+
+user webui
+topic write home/control/tx
+topic read home/control/rx
+topic read home/control/status

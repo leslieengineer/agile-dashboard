@@ -1,0 +1,34 @@
+[Unit]
+Description=Matter.js Controller Service
+After=network-online.target otbr-agent.service
+Wants=network-online.target otbr-agent.service
+
+[Service]
+Type=simple
+User=matter-controller
+Group=matter-rpc
+WorkingDirectory=/var/lib/matter-controller
+Environment=MATTER_STORAGE_PATH=/var/lib/matter-controller
+Environment=MATTER_SOCKET_PATH=/run/matter-controller/controller.sock
+Environment=MATTER_CONTROLLER_ID=agile-matter-controller
+Environment=MATTER_FABRIC_LABEL=Agile Smart Home
+ExecStart=/opt/node20/bin/node /opt/matter-controller/matter-controller.cjs
+Restart=on-failure
+RestartSec=3
+RuntimeDirectory=matter-controller
+RuntimeDirectoryMode=0770
+StateDirectory=matter-controller
+StateDirectoryMode=0750
+
+NoNewPrivileges=yes
+PrivateDevices=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX AF_NETLINK
+MemoryMax=160M
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,12 @@
+{
+  "nodes": [
+    {
+      "node_id": "0x0000000000000001",
+      "endpoints": {
+        "1": ["OnOff", "LevelControl"],
+        "2": ["WindowCovering"],
+        "3": ["VendorCooktop"]
+      }
+    }
+  ]
+}
