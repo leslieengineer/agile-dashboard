@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { CLUSTERS, TEST_VENDOR_ID } from '@agile/contracts'
-import { matterMqtt } from '../services/mqttClient'
+import { matterApi } from '../services/apiClient'
 import { useDeviceStore } from '../stores/devices'
 
 const props = defineProps<{ nodeId: string; endpoint: number }>()
@@ -9,7 +9,7 @@ const devices = useDeviceStore()
 const attributes = computed(() => devices.attributes(props.nodeId, props.endpoint, CLUSTERS.VendorCooktop))
 const zones = computed(() => (attributes.value.ZonePower as number[] | undefined) ?? [0, 0, 0, 0])
 const locked = computed(() => Boolean(attributes.value.PanelLocked))
-const send = (command: string, payload: Record<string, unknown>) => matterMqtt.sendCommand({ node_id: props.nodeId, endpoint: props.endpoint, cluster: 'VendorCooktop', command, payload: { vendor_id: TEST_VENDOR_ID, ...payload } })
+const send = (command: string, payload: Record<string, unknown>) => matterApi.sendCommand({ node_id: props.nodeId, endpoint: props.endpoint, cluster: 'VendorCooktop', command, payload: { vendor_id: TEST_VENDOR_ID, ...payload } })
 </script>
 
 <template>

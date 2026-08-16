@@ -1,4 +1,5 @@
 export * from './envelope.js'
 export * from './ids.js'
 export * from './topics.js'
+export * from './http.js'
 export * from './clusters/index.js'

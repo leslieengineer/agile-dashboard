@@ -1,0 +1,4 @@
+import type {CommandResponse,MatterEvent} from '@agile/contracts'
+type Message=(CommandResponse|MatterEvent);type ML=(m:Message)=>void;type CL=(online:boolean,error?:string)=>void
+class SseClient{private source:EventSource|undefined;private ml=new Set<ML>();private cl=new Set<CL>();connect(){this.disconnect();const s=new EventSource('/api/events',{withCredentials:true});this.source=s;s.onopen=()=>this.cl.forEach(f=>f(true));s.onerror=()=>this.cl.forEach(f=>f(false,'Realtime connection lost'));s.addEventListener('message',e=>{try{const v=JSON.parse((e as MessageEvent).data);if(v.type==='response'||v.type==='event')this.ml.forEach(f=>f(v.data))}catch{}})}disconnect(){this.source?.close();this.source=undefined}onMessage(f:ML){this.ml.add(f);return()=>this.ml.delete(f)}onConnection(f:CL){this.cl.add(f);return()=>this.cl.delete(f)}}
+export const sseClient=new SseClient()

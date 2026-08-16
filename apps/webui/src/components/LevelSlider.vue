@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { CLUSTERS } from '@agile/contracts'
-import { matterMqtt } from '../services/mqttClient'
+import { matterApi } from '../services/apiClient'
 import { useDeviceStore } from '../stores/devices'
 
 const props = defineProps<{ nodeId: string; endpoint: number }>()
@@ -11,7 +11,7 @@ const level = ref(reported.value)
 watch(reported, (value) => (level.value = value))
 
 async function send() {
-  await matterMqtt.sendCommand({
+  await matterApi.sendCommand({
     node_id: props.nodeId,
     endpoint: props.endpoint,
     cluster: 'LevelControl',

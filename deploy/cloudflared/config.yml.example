@@ -1,0 +1,9 @@
+tunnel: <TUNNEL-UUID>
+credentials-file: /etc/cloudflared/<TUNNEL-UUID>.json
+ingress:
+  - hostname: dashboard.rhophi.uk
+    service: http://127.0.0.1:8082
+    originRequest:
+      connectTimeout: 10s
+      keepAliveTimeout: 90s
+  - service: http_status:404

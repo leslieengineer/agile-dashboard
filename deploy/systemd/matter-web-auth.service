@@ -1,0 +1,31 @@
+[Unit]
+Description=Matter Web Authentication BFF
+After=network-online.target mosquitto.service
+Wants=network-online.target mosquitto.service
+
+[Service]
+Type=simple
+User=matter-webui
+Group=matter-webui
+WorkingDirectory=/opt/matter-web-auth
+EnvironmentFile=/etc/matter-web-auth/webui.env
+EnvironmentFile=/etc/matter-web-auth/admin.env
+ExecStart=/opt/node20/bin/node /opt/matter-web-auth/webui-bff.cjs
+Restart=on-failure
+RestartSec=3
+StateDirectory=matter-web-auth
+StateDirectoryMode=0750
+NoNewPrivileges=yes
+PrivateDevices=yes
+PrivateTmp=yes
+ProtectSystem=strict
+ProtectHome=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+CapabilityBoundingSet=
+MemoryMax=128M
+
+[Install]
+WantedBy=multi-user.target

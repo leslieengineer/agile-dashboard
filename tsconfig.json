@@ -3,6 +3,7 @@
   "references": [
     { "path": "./packages/contracts" },
     { "path": "./packages/matter-controller" },
+    { "path": "./packages/webui-bff" },
     { "path": "./packages/gateway" },
     { "path": "./apps/webui" }
   ]

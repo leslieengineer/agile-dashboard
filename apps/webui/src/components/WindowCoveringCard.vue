@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { CLUSTERS } from '@agile/contracts'
-import { matterMqtt } from '../services/mqttClient'
+import { matterApi } from '../services/apiClient'
 import { useDeviceStore } from '../stores/devices'
 
 const props = defineProps<{ nodeId: string; endpoint: number }>()
 const devices = useDeviceStore()
 const position = computed(() => Number(devices.attributes(props.nodeId, props.endpoint, CLUSTERS.WindowCovering).CurrentPositionLiftPercent100ths ?? 0) / 100)
-const send = (command: string) => matterMqtt.sendCommand({ node_id: props.nodeId, endpoint: props.endpoint, cluster: 'WindowCovering', command, payload: {} })
+const send = (command: string) => matterApi.sendCommand({ node_id: props.nodeId, endpoint: props.endpoint, cluster: 'WindowCovering', command, payload: {} })
 </script>
 
 <template>

@@ -21,6 +21,7 @@ Tài liệu này là gói bàn giao kỹ thuật giữa nhóm Gateway/Web và nh
 4. [Tiêu chí kiểm thử tích hợp](06-kiem-thu-tich-hop.md)
 5. [Checklist bàn giao](08-checklist-ban-giao.md)
 6. [Matter.js Controller service](09-matter-controller-service.md)
+7. [Production Web Authentication](11-production-web-auth.md)
 
 ### Nhóm Gateway/Web
 

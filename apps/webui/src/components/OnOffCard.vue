@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { CLUSTERS } from '@agile/contracts'
-import { matterMqtt } from '../services/mqttClient'
+import { matterApi } from '../services/apiClient'
 import { useDeviceStore } from '../stores/devices'
 
 const props = defineProps<{ nodeId: string; endpoint: number }>()
@@ -12,7 +12,7 @@ const on = computed(() => Boolean(devices.attributes(props.nodeId, props.endpoin
 async function setPower(command: 'On' | 'Off') {
   busy.value = true
   try {
-    await matterMqtt.sendCommand({ node_id: props.nodeId, endpoint: props.endpoint, cluster: 'OnOff', command, payload: {} })
+    await matterApi.sendCommand({ node_id: props.nodeId, endpoint: props.endpoint, cluster: 'OnOff', command, payload: {} })
   } finally {
     busy.value = false
   }

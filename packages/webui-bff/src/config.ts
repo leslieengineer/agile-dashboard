@@ -1,0 +1,4 @@
+import { z } from 'zod'
+const Schema=z.object({WEBUI_BIND:z.string().default('127.0.0.1'),WEBUI_PORT:z.coerce.number().int().positive().default(8080),WEBUI_PUBLIC_ORIGIN:z.string().url(),WEBUI_ROOT:z.string().default('/opt/matter-webui/public'),WEBUI_ADMIN_USERNAME:z.string().min(1),WEBUI_ADMIN_PASSWORD_HASH:z.string().min(20),WEBUI_SESSION_TTL_S:z.coerce.number().default(604800),WEBUI_SESSION_IDLE_S:z.coerce.number().default(86400),WEBUI_STATE_DIR:z.string().default('/var/lib/matter-webui'),MQTT_URL:z.string().default('mqtt://127.0.0.1:1883'),MQTT_USERNAME:z.string(),MQTT_PASSWORD:z.string(),LOG_LEVEL:z.string().default('info')})
+export type Config=z.infer<typeof Schema>
+export const loadConfig=(env:NodeJS.ProcessEnv=process.env)=>Schema.parse(env)
