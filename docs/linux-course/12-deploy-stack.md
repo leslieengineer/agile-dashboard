@@ -12,9 +12,11 @@
 2. OTBR quản lý Thread/RCP
 3. Matter.js Controller giữ fabric và Unix RPC
 4. Node gateway xử lý MQTT/translation
-5. WebUI là static files do systemd-managed server phục vụ
+5. `matter-web-auth` phục vụ WebUI, REST/SSE và giữ MQTT credential phía server
+6. `cloudflared` cung cấp public HTTPS ingress tới BFF port 8082
+7. Python static WebUI port 8080 và MQTT WebSocket 9001 được giữ làm LAN/rollback path
 
-Aedes và Vite chỉ còn dùng test/development. Python static server hiện phù hợp trusted LAN; HTTPS/WSS server vẫn là bước hardening tiếp theo.
+Aedes và Vite chỉ dùng test/development. Public path hiện đi qua Cloudflare/BFF; chi tiết auth, API, observability và rollback nằm trong [Production Platform course](../platform-course/README.md).
 
 ## Mosquitto
 
@@ -64,7 +66,9 @@ network-online
   → otbr-agent
   → matter-controller
   → matter-gateway
-  → matter-webui
+  → matter-web-auth
+  → cloudflared
+  → matter-webui legacy/rollback
 ```
 
 `After` sắp thứ tự nhưng readiness thật có thể cần retry. mqtt.js và gateway đều có reconnect behavior.

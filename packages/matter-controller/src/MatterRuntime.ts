@@ -2,9 +2,10 @@ import { Environment, Filesystem } from '@matter/main'
 import { LevelControlClient } from '@matter/main/behaviors/level-control'
 import { OnOffClient } from '@matter/main/behaviors/on-off'
 import { WindowCoveringClient } from '@matter/main/behaviors/window-covering'
+import { GeneralCommissioning } from '@matter/main/clusters'
 import { NodeId } from '@matter/main/types'
 import { NodeJsFilesystem } from '@matter/nodejs'
-import { CommissioningController } from '@project-chip/matter.js'
+import { CommissioningController, type NodeCommissioningOptions } from '@project-chip/matter.js'
 import type { ControllerConfig } from './config.js'
 
 export interface InvokeParams {
@@ -15,8 +16,38 @@ export interface InvokeParams {
   payload: Record<string, unknown>
 }
 
+export interface CommissionOnNetworkParams {
+  setup_passcode: number
+  discriminator: number
+  assigned_node_id?: string
+  country_code?: string
+}
+
+export interface ReadParams {
+  node_id: string
+  endpoint: number
+  cluster: number
+  attribute: number
+}
+
+export interface NodeParams {
+  node_id: string
+}
+
+export interface ControllerAttributeEvent {
+  node_id: string
+  endpoint: number
+  cluster: number
+  attribute: number
+  value: unknown
+}
+
+export type ControllerEventSink = (method: 'attributeChanged', event: ControllerAttributeEvent) => void
+
 export class MatterRuntime {
   private controller: CommissioningController | undefined
+  private eventSink: ControllerEventSink | undefined
+  private readonly subscribedNodes = new Set<string>()
 
   constructor(private readonly config: ControllerConfig) {}
 
@@ -26,9 +57,13 @@ export class MatterRuntime {
     this.controller = new CommissioningController({
       environment: { environment, id: this.config.controllerId },
       autoConnect: true,
+      autoSubscribe: true,
       adminFabricLabel: this.config.fabricLabel,
     })
     await this.controller.start()
+    for (const nodeId of this.controller.getCommissionedNodes()) {
+      void this.ensureSubscription(nodeId).catch(() => undefined)
+    }
   }
 
   async stop(): Promise<void> {
@@ -49,6 +84,71 @@ export class MatterRuntime {
     return (this.controller?.getCommissionedNodes() ?? []).map((nodeId) =>
       `0x${BigInt(nodeId).toString(16).padStart(16, '0')}`,
     )
+  }
+
+  setEventSink(sink: ControllerEventSink): void {
+    this.eventSink = sink
+  }
+
+  async commissionOnNetwork(params: CommissionOnNetworkParams): Promise<{ node_id: string }> {
+    const controller = this.requireController()
+    if (!Number.isInteger(params.setup_passcode) || params.setup_passcode <= 0) throw new Error('Invalid setup passcode')
+    if (!Number.isInteger(params.discriminator) || params.discriminator < 0 || params.discriminator > 4095) {
+      throw new Error('Invalid discriminator')
+    }
+
+    const commissioning: NodeCommissioningOptions['commissioning'] = {
+      regulatoryLocation: GeneralCommissioning.RegulatoryLocationType.IndoorOutdoor,
+      regulatoryCountryCode: params.country_code ?? 'XX',
+      ...(params.assigned_node_id === undefined ? {} : { nodeId: NodeId(BigInt(params.assigned_node_id)) }),
+    }
+    const options: NodeCommissioningOptions = {
+      passcode: params.setup_passcode,
+      commissioning,
+      discovery: { identifierData: { longDiscriminator: params.discriminator } },
+      autoConnect: true,
+      autoSubscribe: true,
+    }
+    const nodeId = await controller.commissionNode(options)
+    await this.ensureSubscription(nodeId)
+    return { node_id: this.formatNodeId(nodeId) }
+  }
+
+  async removeNode(params: NodeParams): Promise<{ removed: true }> {
+    const controller = this.requireController()
+    const nodeId = NodeId(BigInt(params.node_id))
+    await controller.removeNode(nodeId, true)
+    this.subscribedNodes.delete(this.formatNodeId(nodeId))
+    return { removed: true }
+  }
+
+  async describeNode(params: NodeParams): Promise<unknown> {
+    const node = await this.getConnectedNode(params.node_id)
+    const endpoints = Array.from(node.parts.values()).map((endpoint) => {
+      const onOff = endpoint.maybeStateOf(OnOffClient)
+      return {
+        endpoint: endpoint.number,
+        server_clusters: onOff === undefined ? [] : [0x0006],
+        attributes: onOff === undefined ? {} : { OnOff: onOff.onOff },
+      }
+    })
+    return { node_id: params.node_id, endpoints }
+  }
+
+  async read(params: ReadParams): Promise<unknown> {
+    const node = await this.getConnectedNode(params.node_id)
+    const endpoint = node.parts.get(params.endpoint)
+    if (!endpoint) throw new Error(`Endpoint ${params.endpoint} not found on ${params.node_id}`)
+    if (params.cluster === 0x0006 && params.attribute === 0x0000) {
+      const state = await endpoint.getStateOf(OnOffClient, ['onOff'])
+      return { node_id: params.node_id, endpoint: params.endpoint, cluster: params.cluster, attribute: params.attribute, value: state.onOff }
+    }
+    throw new Error(`Read path ${params.endpoint}/${params.cluster}/${params.attribute} is not supported`)
+  }
+
+  async subscribe(params: NodeParams): Promise<{ subscribed: true }> {
+    await this.ensureSubscription(NodeId(BigInt(params.node_id)))
+    return { subscribed: true }
   }
 
   async invoke(params: InvokeParams): Promise<unknown> {
@@ -113,5 +213,42 @@ export class MatterRuntime {
     }
 
     throw new Error(`Cluster ${params.cluster} is not supported by the Matter.js adapter`)
+  }
+
+  private requireController(): CommissioningController {
+    if (!this.controller) throw new Error('Matter controller is not started')
+    return this.controller
+  }
+
+  private formatNodeId(nodeId: ReturnType<typeof NodeId>): string {
+    return `0x${BigInt(nodeId).toString(16).padStart(16, '0')}`
+  }
+
+  private async getConnectedNode(nodeIdText: string) {
+    const controller = this.requireController()
+    const nodeId = NodeId(BigInt(nodeIdText))
+    if (!controller.getCommissionedNodes().includes(nodeId)) throw new Error(`Node ${nodeIdText} is not commissioned`)
+    const node = await controller.getNode(nodeId)
+    if (!node.isConnected) node.connect()
+    if (!node.initialized) await node.events.initialized
+    return node
+  }
+
+  private async ensureSubscription(nodeId: ReturnType<typeof NodeId>): Promise<void> {
+    const formatted = this.formatNodeId(nodeId)
+    const node = await this.getConnectedNode(formatted)
+    if (this.subscribedNodes.has(formatted)) return
+    node.events.attributeChanged.on((data) => {
+      if (data.path.clusterId !== 0x0006 || data.path.attributeId !== 0x0000) return
+      this.eventSink?.('attributeChanged', {
+        node_id: formatted,
+        endpoint: Number(data.path.endpointId),
+        cluster: Number(data.path.clusterId),
+        attribute: Number(data.path.attributeId),
+        value: data.value,
+      })
+    })
+    await node.subscribeAllAttributesAndEvents()
+    this.subscribedNodes.add(formatted)
   }
 }

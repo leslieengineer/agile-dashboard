@@ -11,7 +11,7 @@
     "node": ">=20.11"
   },
   "scripts": {
-    "build": "npm run build -w @agile/contracts && npm run build -w @agile/matter-controller && npm run build -w @agile/webui-bff && npm run build -w @agile/gateway && npm run build -w @agile/webui",
+    "build": "npm run build -w @agile/contracts && npm run build -w @agile/provisioning && npm run build -w @agile/matter-controller && npm run build -w @agile/webui-bff && npm run build -w @agile/gateway && npm run build -w @agile/webui",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "vitest run",
     "test:watch": "vitest",

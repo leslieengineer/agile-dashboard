@@ -59,3 +59,4 @@ Luôn đọc và hiểu lệnh TĐ trước khi nhập sudo. Password chỉ nh�
 
 - [Lập trình Web](../web-course/README.md)
 - [Matter và Thread](../matter-thread-course/README.md)
+- [Production Platform: Auth, API và Vận hành](../platform-course/README.md)

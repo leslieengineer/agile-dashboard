@@ -63,9 +63,10 @@ Không cần nhớ mọi API. Mục tiêu đầu tiên là biết mỗi thành p
 
 ## Ranh giới quan trọng của dự án
 
-Production platform hiện có Mosquitto auth/ACL, WebUI runtime login, Gateway, OTBR và Matter.js 0.17.9 Controller chạy systemd và tự phục hồi sau reboot. Gateway vẫn chọn `MockMatterController` vì chưa có node commissioned/BLE adapter. Matter.js adapter đã tồn tại nhưng chưa cutover hardware.
+Production platform hiện có Cloudflare/BFF, Web cookie auth, Mobile bearer/CORS/SSE, Mosquitto auth/ACL, Gateway, OTBR và Matter.js 0.17.9 Controller. Browser MQTT WebSocket 9001 là LAN/rollback path, không phải public Mobile path. Gateway vẫn chọn `MockMatterController` vì chưa có commissioned application node; Matter.js adapter chưa cutover hardware.
 
 ## Khóa liên quan
 
 - [Linux trên BBB](../linux-course/README.md)
 - [Matter và Thread](../matter-thread-course/README.md)
+- [Production Platform: Auth, API và Vận hành](../platform-course/README.md)

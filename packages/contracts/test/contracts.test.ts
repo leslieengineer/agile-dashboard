@@ -1,12 +1,53 @@
 import { describe, expect, it } from 'vitest'
 import {
   CLUSTERS,
-  CommandRequestSchema,
+  ClaimProofRequestSchema,
+  CommissioningSessionCreateRequestSchema,
+  CommissioningWindowRequestSchema,
+  EncryptedCommissioningGrantSchema,
   MoveToLevelPayloadSchema,
+  ProvisioningStateSchema,
+  CommandRequestSchema,
   normalizeNodeId,
   resolveClusterId,
   resolveCommandId,
 } from '../src/index.js'
+
+describe('Provisioning contracts', () => {
+  it('accepts a bounded commissioning request and encrypted grant', () => {
+    expect(CommissioningSessionCreateRequestSchema.parse({
+      claim_id: 'YWJjZGVmZ2g',
+      product_id: 1,
+      mobile_ephemeral_public_key: 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA',
+    }).product_id).toBe(1)
+
+    expect(EncryptedCommissioningGrantSchema.parse({
+      version: 1,
+      algorithm: 'X25519-HKDF-SHA256-AES-256-GCM',
+      server_ephemeral_public_key: 'BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB',
+      nonce: 'CCCCCCCCCCCCCCCC',
+      ciphertext: 'DDDDDDDDDDDDDDDD',
+      authentication_tag: 'EEEEEEEEEEEEEEEEEEEEEE',
+      transaction_id: '11111111-1111-4111-8111-111111111111',
+      expires_at: '2026-08-16T12:00:00.000Z',
+    }).version).toBe(1)
+  })
+
+  it('rejects malformed proofs and unsafe window values', () => {
+    expect(() => ClaimProofRequestSchema.parse({ device_nonce: 'not base64!', proof: 'short' })).toThrow()
+    expect(() => CommissioningWindowRequestSchema.parse({
+      temporary_node_id: '1',
+      discriminator: 4096,
+      setup_passcode: 0,
+      timeout_seconds: 5,
+    })).toThrow()
+  })
+
+  it('defines recovery states explicitly', () => {
+    expect(ProvisioningStateSchema.parse('CLEANUP_PENDING')).toBe('CLEANUP_PENDING')
+    expect(() => ProvisioningStateSchema.parse('UNKNOWN')).toThrow()
+  })
+})
 
 describe('Matter command contracts', () => {
   it('accepts and normalizes a valid Matter envelope', () => {

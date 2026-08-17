@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { CommandRequestSchema, CommandResponseSchema, MatterEventSchema } from './envelope.js'
+import { CommissioningNotificationSchema, DeviceInventoryEntrySchema } from './provisioning.js'
 
 export const CommandInputSchema = CommandRequestSchema.omit({ request_id: true }).strict()
 export const LoginRequestSchema = z.object({ username: z.string().min(1).max(64), password: z.string().min(8).max(256) }).strict()
@@ -10,7 +11,8 @@ export const SseEnvelopeSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('response'), data: CommandResponseSchema }).strict(),
   z.object({ type: z.literal('event'), data: MatterEventSchema }).strict(),
   z.object({ type: z.literal('status'), data: z.record(z.unknown()) }).strict(),
-  z.object({ type: z.literal('snapshot'), data: z.object({ devices: z.record(z.unknown()) }) }).strict(),
+  z.object({ type: z.literal('snapshot'), data: z.object({ devices: z.array(DeviceInventoryEntrySchema) }).strict() }).strict(),
+  CommissioningNotificationSchema,
 ])
 export type CommandInput = z.infer<typeof CommandInputSchema>
 export type SessionInfo = z.infer<typeof SessionInfoSchema>

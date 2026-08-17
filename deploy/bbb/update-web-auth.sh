@@ -10,5 +10,10 @@ cp -a ${SRC}/webui/. /opt/matter-web-auth/public/
 chown -R root:root /opt/matter-web-auth
 find /opt/matter-web-auth/public -type d -exec chmod 755 {} +
 find /opt/matter-web-auth/public -type f -exec chmod 644 {} +
+if grep -q '^MOBILE_ALLOWED_ORIGINS=' /etc/matter-web-auth/webui.env; then
+  sed -i 's|^MOBILE_ALLOWED_ORIGINS=.*|MOBILE_ALLOWED_ORIGINS=https://localhost|' /etc/matter-web-auth/webui.env
+else
+  printf '\nMOBILE_ALLOWED_ORIGINS=https://localhost\n' >>/etc/matter-web-auth/webui.env
+fi
 systemctl start matter-web-auth
 systemctl --no-pager --full status matter-web-auth

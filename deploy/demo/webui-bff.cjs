@@ -9009,38 +9009,38 @@ var require_duplexify = __commonJS({
         }
       }
     };
-    module2.exports = function duplexify(body2, name) {
-      if (isDuplexNodeStream(body2)) {
-        return body2;
+    module2.exports = function duplexify(body, name) {
+      if (isDuplexNodeStream(body)) {
+        return body;
       }
-      if (isReadableNodeStream(body2)) {
+      if (isReadableNodeStream(body)) {
         return _duplexify({
-          readable: body2
+          readable: body
         });
       }
-      if (isWritableNodeStream(body2)) {
+      if (isWritableNodeStream(body)) {
         return _duplexify({
-          writable: body2
+          writable: body
         });
       }
-      if (isNodeStream(body2)) {
+      if (isNodeStream(body)) {
         return _duplexify({
           writable: false,
           readable: false
         });
       }
-      if (isReadableStream(body2)) {
+      if (isReadableStream(body)) {
         return _duplexify({
-          readable: Readable.fromWeb(body2)
+          readable: Readable.fromWeb(body)
         });
       }
-      if (isWritableStream(body2)) {
+      if (isWritableStream(body)) {
         return _duplexify({
-          writable: Writable.fromWeb(body2)
+          writable: Writable.fromWeb(body)
         });
       }
-      if (typeof body2 === "function") {
-        const { value, write, final, destroy } = fromAsyncGen(body2);
+      if (typeof body === "function") {
+        const { value, write, final, destroy } = fromAsyncGen(body);
         if (isIterable(value)) {
           return from(Duplexify, value, {
             // TODO (ronag): highWaterMark?
@@ -9085,33 +9085,33 @@ var require_duplexify = __commonJS({
         }
         throw new ERR_INVALID_RETURN_VALUE("Iterable, AsyncIterable or AsyncFunction", name, value);
       }
-      if (isBlob(body2)) {
-        return duplexify(body2.arrayBuffer());
+      if (isBlob(body)) {
+        return duplexify(body.arrayBuffer());
       }
-      if (isIterable(body2)) {
-        return from(Duplexify, body2, {
+      if (isIterable(body)) {
+        return from(Duplexify, body, {
           // TODO (ronag): highWaterMark?
           objectMode: true,
           writable: false
         });
       }
-      if (isReadableStream(body2 === null || body2 === void 0 ? void 0 : body2.readable) && isWritableStream(body2 === null || body2 === void 0 ? void 0 : body2.writable)) {
-        return Duplexify.fromWeb(body2);
+      if (isReadableStream(body === null || body === void 0 ? void 0 : body.readable) && isWritableStream(body === null || body === void 0 ? void 0 : body.writable)) {
+        return Duplexify.fromWeb(body);
       }
-      if (typeof (body2 === null || body2 === void 0 ? void 0 : body2.writable) === "object" || typeof (body2 === null || body2 === void 0 ? void 0 : body2.readable) === "object") {
-        const readable = body2 !== null && body2 !== void 0 && body2.readable ? isReadableNodeStream(body2 === null || body2 === void 0 ? void 0 : body2.readable) ? body2 === null || body2 === void 0 ? void 0 : body2.readable : duplexify(body2.readable) : void 0;
-        const writable = body2 !== null && body2 !== void 0 && body2.writable ? isWritableNodeStream(body2 === null || body2 === void 0 ? void 0 : body2.writable) ? body2 === null || body2 === void 0 ? void 0 : body2.writable : duplexify(body2.writable) : void 0;
+      if (typeof (body === null || body === void 0 ? void 0 : body.writable) === "object" || typeof (body === null || body === void 0 ? void 0 : body.readable) === "object") {
+        const readable = body !== null && body !== void 0 && body.readable ? isReadableNodeStream(body === null || body === void 0 ? void 0 : body.readable) ? body === null || body === void 0 ? void 0 : body.readable : duplexify(body.readable) : void 0;
+        const writable = body !== null && body !== void 0 && body.writable ? isWritableNodeStream(body === null || body === void 0 ? void 0 : body.writable) ? body === null || body === void 0 ? void 0 : body.writable : duplexify(body.writable) : void 0;
         return _duplexify({
           readable,
           writable
         });
       }
-      const then = body2 === null || body2 === void 0 ? void 0 : body2.then;
+      const then = body === null || body === void 0 ? void 0 : body.then;
       if (typeof then === "function") {
         let d;
         FunctionPrototypeCall(
           then,
-          body2,
+          body,
           (val) => {
             if (val != null) {
               d.push(val);
@@ -9142,7 +9142,7 @@ var require_duplexify = __commonJS({
           "{ readable, writable } pair",
           "Promise"
         ],
-        body2
+        body
       );
     };
     function fromAsyncGen(fn) {
@@ -9413,11 +9413,11 @@ var require_duplex = __commonJS({
       return lazyWebStreams().newReadableWritablePairFromDuplex(duplex);
     };
     var duplexify;
-    Duplex.from = function(body2) {
+    Duplex.from = function(body) {
       if (!duplexify) {
         duplexify = require_duplexify();
       }
-      return duplexify(body2, "body");
+      return duplexify(body, "body");
     };
   }
 });
@@ -23736,7 +23736,7 @@ var require_websocket = __commonJS({
     var http = require("http");
     var net = require("net");
     var tls = require("tls");
-    var { randomBytes: randomBytes3, createHash: createHash2 } = require("crypto");
+    var { randomBytes: randomBytes5, createHash: createHash2 } = require("crypto");
     var { Duplex, Readable } = require("stream");
     var { URL: URL2 } = require("url");
     var PerMessageDeflate = require_permessage_deflate();
@@ -24274,7 +24274,7 @@ var require_websocket = __commonJS({
         }
       }
       const defaultPort = isSecure ? 443 : 80;
-      const key = randomBytes3(16).toString("base64");
+      const key = randomBytes5(16).toString("base64");
       const request = isSecure ? https.request : http.request;
       const protocolSet = /* @__PURE__ */ new Set();
       let perMessageDeflate;
@@ -24333,10 +24333,10 @@ var require_websocket = __commonJS({
           websocket._originalIpc = isIpcUrl;
           websocket._originalSecure = isSecure;
           websocket._originalHostOrSocketPath = isIpcUrl ? opts.socketPath : parsedUrl.host;
-          const headers2 = options && options.headers;
+          const headers = options && options.headers;
           options = { ...options, headers: {} };
-          if (headers2) {
-            for (const [key2, value] of Object.entries(headers2)) {
+          if (headers) {
+            for (const [key2, value] of Object.entries(headers)) {
               options.headers[key2.toLowerCase()] = value;
             }
           }
@@ -24853,12 +24853,12 @@ var require_websocket_server = __commonJS({
         }
         if (options.port != null) {
           this._server = http.createServer((req, res) => {
-            const body2 = http.STATUS_CODES[426];
+            const body = http.STATUS_CODES[426];
             res.writeHead(426, {
-              "Content-Length": body2.length,
+              "Content-Length": body.length,
               "Content-Type": "text/plain"
             });
-            res.end(body2);
+            res.end(body);
           });
           this._server.listen(
             options.port,
@@ -25033,15 +25033,15 @@ var require_websocket_server = __commonJS({
           }
         }
         if (this.options.verifyClient) {
-          const info2 = {
+          const info = {
             origin: req.headers[`${version === 8 ? "sec-websocket-origin" : "origin"}`],
             secure: !!(req.socket.authorized || req.socket.encrypted),
             req
           };
           if (this.options.verifyClient.length === 2) {
-            this.options.verifyClient(info2, (verified, code, message, headers2) => {
+            this.options.verifyClient(info, (verified, code, message, headers) => {
               if (!verified) {
-                return abortHandshake(socket, code || 401, message, headers2);
+                return abortHandshake(socket, code || 401, message, headers);
               }
               this.completeUpgrade(
                 extensions,
@@ -25055,7 +25055,7 @@ var require_websocket_server = __commonJS({
             });
             return;
           }
-          if (!this.options.verifyClient(info2)) return abortHandshake(socket, 401);
+          if (!this.options.verifyClient(info)) return abortHandshake(socket, 401);
         }
         this.completeUpgrade(extensions, key, protocols, req, socket, head, cb);
       }
@@ -25081,7 +25081,7 @@ var require_websocket_server = __commonJS({
         }
         if (this._state > RUNNING) return abortHandshake(socket, 503);
         const digest = createHash2("sha1").update(key + GUID).digest("base64");
-        const headers2 = [
+        const headers = [
           "HTTP/1.1 101 Switching Protocols",
           "Upgrade: websocket",
           "Connection: Upgrade",
@@ -25091,7 +25091,7 @@ var require_websocket_server = __commonJS({
         if (protocols.size) {
           const protocol = this.options.handleProtocols ? this.options.handleProtocols(protocols, req) : protocols.values().next().value;
           if (protocol) {
-            headers2.push(`Sec-WebSocket-Protocol: ${protocol}`);
+            headers.push(`Sec-WebSocket-Protocol: ${protocol}`);
             ws._protocol = protocol;
           }
         }
@@ -25100,11 +25100,11 @@ var require_websocket_server = __commonJS({
           const value = extension.format({
             [PerMessageDeflate.extensionName]: [params]
           });
-          headers2.push(`Sec-WebSocket-Extensions: ${value}`);
+          headers.push(`Sec-WebSocket-Extensions: ${value}`);
           ws._extensions = extensions;
         }
-        this.emit("headers", headers2, req);
-        socket.write(headers2.concat("\r\n").join("\r\n"));
+        this.emit("headers", headers, req);
+        socket.write(headers.concat("\r\n").join("\r\n"));
         socket.removeListener("error", socketOnError);
         ws.setSocket(socket, head, {
           allowSynchronousEvents: this.options.allowSynchronousEvents,
@@ -25141,27 +25141,27 @@ var require_websocket_server = __commonJS({
     function socketOnError() {
       this.destroy();
     }
-    function abortHandshake(socket, code, message, headers2) {
+    function abortHandshake(socket, code, message, headers) {
       message = message || http.STATUS_CODES[code];
-      headers2 = {
+      headers = {
         Connection: "close",
         "Content-Type": "text/html",
         "Content-Length": Buffer.byteLength(message),
-        ...headers2
+        ...headers
       };
       socket.once("finish", socket.destroy);
       socket.end(
         `HTTP/1.1 ${code} ${http.STATUS_CODES[code]}\r
-` + Object.keys(headers2).map((h) => `${h}: ${headers2[h]}`).join("\r\n") + "\r\n\r\n" + message
+` + Object.keys(headers).map((h) => `${h}: ${headers[h]}`).join("\r\n") + "\r\n\r\n" + message
       );
     }
-    function abortHandshakeOrEmitwsClientError(server, req, socket, code, message, headers2) {
+    function abortHandshakeOrEmitwsClientError(server, req, socket, code, message, headers) {
       if (server.listenerCount("wsClientError")) {
         const err = new Error(message);
         Error.captureStackTrace(err, abortHandshakeOrEmitwsClientError);
         server.emit("wsClientError", err, socket, req);
       } else {
-        abortHandshake(socket, code, message, headers2);
+        abortHandshake(socket, code, message, headers);
       }
     }
   }
@@ -29147,13 +29147,13 @@ var require_socksclient = __commonJS({
           }
           const client = new _SocksClient(options);
           client.connect(options.existing_socket);
-          client.once("established", (info2) => {
+          client.once("established", (info) => {
             client.removeAllListeners();
             if (typeof callback === "function") {
-              callback(null, info2);
-              resolve2(info2);
+              callback(null, info);
+              resolve2(info);
             } else {
-              resolve2(info2);
+              resolve2(info);
             }
           });
           client.once("error", (err) => {
@@ -29313,13 +29313,13 @@ var require_socksclient = __commonJS({
             this.socket.setNoDelay(!!this.options.set_tcp_nodelay);
           }
         }
-        this.prependOnceListener("established", (info2) => {
+        this.prependOnceListener("established", (info) => {
           setImmediate(() => {
             if (this.receiveBuffer.length > 0) {
               const excessData = this.receiveBuffer.get(this.receiveBuffer.length);
-              info2.socket.emit("data", excessData);
+              info.socket.emit("data", excessData);
             }
-            info2.socket.resume();
+            info.socket.resume();
           });
         });
       }
@@ -30610,9 +30610,9 @@ var require_build2 = __commonJS({
 
 // packages/webui-bff/src/main.ts
 var import_node_http = require("node:http");
-var import_node_fs = require("node:fs");
-var import_promises2 = require("node:fs/promises");
-var import_node_path2 = require("node:path");
+var import_node_fs2 = require("node:fs");
+var import_promises4 = require("node:fs/promises");
+var import_node_path3 = require("node:path");
 
 // node_modules/zod/v3/external.js
 var external_exports = {};
@@ -34755,17 +34755,154 @@ var TOPIC_RX = "home/control/rx";
 var TOPIC_STATUS = "home/control/status";
 var MAX_PAYLOAD_BYTES = 8 * 1024;
 
+// packages/contracts/dist/provisioning.js
+var Base64UrlSchema = external_exports.string().min(8).max(4096).regex(/^[A-Za-z0-9_-]+$/);
+var IsoDateSchema = external_exports.string().datetime();
+var ProvisioningStateSchema = external_exports.enum([
+  "CREATED",
+  "CLAIM_CHALLENGE",
+  "CLAIM_VERIFIED",
+  "GRANT_ISSUED",
+  "PASE_ESTABLISHED",
+  "ATTESTATION_VERIFIED",
+  "THREAD_PROVISIONING",
+  "THREAD_ATTACHING",
+  "TEMP_FABRIC_COMMISSIONED",
+  "WINDOW_OPEN",
+  "BBB_FABRIC_COMMISSIONING",
+  "ENDPOINT_DISCOVERY",
+  "SUBSCRIBING",
+  "TEMP_FABRIC_REMOVING",
+  "CLEANUP_PENDING",
+  "COMPLETE",
+  "INVALID_DEVICE",
+  "CLAIM_FAILED",
+  "BLE_TIMEOUT",
+  "PASE_FAILED",
+  "ATTESTATION_FAILED",
+  "THREAD_ATTACH_FAILED",
+  "NODE_NOT_DISCOVERED",
+  "BBB_COMMISSION_FAILED",
+  "SUBSCRIPTION_FAILED",
+  "TEMP_FABRIC_REMOVE_FAILED",
+  "CANCELLED",
+  "EXPIRED"
+]);
+var ProvisioningErrorCodeSchema = external_exports.enum([
+  "INVALID_DEVICE",
+  "CLAIM_NOT_FOUND",
+  "CLAIM_INVALID",
+  "CLAIM_REPLAYED",
+  "CLAIM_EXPIRED",
+  "CLAIM_RATE_LIMITED",
+  "TRANSACTION_CONFLICT",
+  "TRANSACTION_NOT_FOUND",
+  "TRANSACTION_STATE_INVALID",
+  "THREAD_ATTACH_FAILED",
+  "BBB_COMMISSION_FAILED",
+  "NODE_NOT_FOUND",
+  "SUBSCRIPTION_FAILED",
+  "CLEANUP_REQUIRED",
+  "INTERNAL"
+]);
+var ProvisioningErrorSchema = external_exports.object({
+  code: ProvisioningErrorCodeSchema,
+  message: external_exports.string().min(1).max(256),
+  retryable: external_exports.boolean().default(false)
+}).strict();
+var CommissioningSessionCreateRequestSchema = external_exports.object({
+  claim_id: Base64UrlSchema.max(128),
+  product_id: external_exports.number().int().positive().max(65535),
+  mobile_ephemeral_public_key: Base64UrlSchema.max(128)
+}).strict();
+var CommissioningSessionCreateResponseSchema = external_exports.object({
+  transaction_id: external_exports.string().uuid(),
+  challenge: Base64UrlSchema.max(128),
+  expires_at: IsoDateSchema,
+  state: external_exports.literal("CLAIM_CHALLENGE")
+}).strict();
+var ClaimProofRequestSchema = external_exports.object({
+  device_nonce: Base64UrlSchema.max(128),
+  proof: Base64UrlSchema.max(128),
+  ble_address_hint: external_exports.string().min(1).max(64).optional()
+}).strict();
+var EncryptedCommissioningGrantSchema = external_exports.object({
+  version: external_exports.literal(1),
+  algorithm: external_exports.literal("X25519-HKDF-SHA256-AES-256-GCM"),
+  server_ephemeral_public_key: Base64UrlSchema.max(128),
+  nonce: Base64UrlSchema.max(64),
+  ciphertext: Base64UrlSchema,
+  authentication_tag: Base64UrlSchema.max(64),
+  transaction_id: external_exports.string().uuid(),
+  expires_at: IsoDateSchema
+}).strict();
+var ClaimProofResponseSchema = external_exports.object({
+  transaction_id: external_exports.string().uuid(),
+  state: external_exports.literal("GRANT_ISSUED"),
+  grant: EncryptedCommissioningGrantSchema
+}).strict();
+var ThreadAttachedRequestSchema = external_exports.object({
+  temporary_node_id: NodeIdSchema,
+  attestation_verified: external_exports.literal(true)
+}).strict();
+var CommissioningWindowRequestSchema = external_exports.object({
+  temporary_node_id: NodeIdSchema,
+  discriminator: external_exports.number().int().nonnegative().max(4095),
+  setup_passcode: external_exports.number().int().positive().max(99999998),
+  timeout_seconds: external_exports.number().int().min(60).max(900),
+  known_ipv6_address: external_exports.string().max(64).optional()
+}).strict();
+var CommissioningCompleteRequestSchema = external_exports.object({
+  bbb_node_id: NodeIdSchema,
+  temporary_fabric_removed: external_exports.boolean()
+}).strict();
+var CommissioningSessionSchema = external_exports.object({
+  transaction_id: external_exports.string().uuid(),
+  claim_id: Base64UrlSchema.max(128),
+  product_id: external_exports.number().int().positive().max(65535),
+  state: ProvisioningStateSchema,
+  created_at: IsoDateSchema,
+  expires_at: IsoDateSchema,
+  temporary_node_id: external_exports.string().optional(),
+  bbb_node_id: external_exports.string().optional(),
+  error: ProvisioningErrorSchema.optional()
+}).strict();
+var DeviceEndpointSchema = external_exports.object({
+  endpoint: external_exports.number().int().nonnegative().max(65535),
+  device_types: external_exports.array(external_exports.number().int().nonnegative().max(4294967295)),
+  server_clusters: external_exports.array(external_exports.number().int().nonnegative().max(4294967295))
+}).strict();
+var DeviceInventoryEntrySchema = external_exports.object({
+  node_id: external_exports.string().regex(/^0x[0-9a-f]{16}$/),
+  product_id: external_exports.number().int().positive().max(65535),
+  label: external_exports.string().min(1).max(64),
+  online: external_exports.boolean(),
+  commissioned_at: IsoDateSchema,
+  endpoints: external_exports.array(DeviceEndpointSchema)
+}).strict();
+var CommissioningNotificationSchema = external_exports.object({
+  type: external_exports.literal("provisioning"),
+  transaction_id: external_exports.string().uuid(),
+  state: ProvisioningStateSchema,
+  timestamp: IsoDateSchema,
+  error: ProvisioningErrorSchema.optional()
+}).strict();
+
 // packages/contracts/dist/http.js
 var CommandInputSchema = CommandRequestSchema.omit({ request_id: true }).strict();
 var LoginRequestSchema = external_exports.object({ username: external_exports.string().min(1).max(64), password: external_exports.string().min(8).max(256) }).strict();
+var MobileLoginRequestSchema = LoginRequestSchema;
 var SessionInfoSchema = external_exports.object({ authenticated: external_exports.literal(true), username: external_exports.string(), csrf_token: external_exports.string(), expires_at: external_exports.string().datetime() }).strict();
+var MobileSessionInfoSchema = external_exports.object({ authenticated: external_exports.literal(true), username: external_exports.string(), expires_at: external_exports.string().datetime() }).strict();
+var MobileLoginResponseSchema = MobileSessionInfoSchema.extend({ token: external_exports.string().min(43).max(128) }).strict();
 var ApiErrorCodeSchema = external_exports.enum(["UNAUTHENTICATED", "INVALID_CREDENTIALS", "CSRF_INVALID", "FORBIDDEN_ORIGIN", "RATE_LIMITED", "BAD_REQUEST", "PAYLOAD_TOO_LARGE", "UPSTREAM_TIMEOUT", "MQTT_UNAVAILABLE", "INTERNAL"]);
 var ApiErrorSchema = external_exports.object({ code: ApiErrorCodeSchema, message: external_exports.string(), retry_after_s: external_exports.number().optional() }).strict();
 var SseEnvelopeSchema = external_exports.discriminatedUnion("type", [
   external_exports.object({ type: external_exports.literal("response"), data: CommandResponseSchema }).strict(),
   external_exports.object({ type: external_exports.literal("event"), data: MatterEventSchema }).strict(),
   external_exports.object({ type: external_exports.literal("status"), data: external_exports.record(external_exports.unknown()) }).strict(),
-  external_exports.object({ type: external_exports.literal("snapshot"), data: external_exports.object({ devices: external_exports.record(external_exports.unknown()) }) }).strict()
+  external_exports.object({ type: external_exports.literal("snapshot"), data: external_exports.object({ devices: external_exports.array(DeviceInventoryEntrySchema) }).strict() }).strict(),
+  CommissioningNotificationSchema
 ]);
 
 // packages/contracts/dist/clusters/onOff.js
@@ -34807,17 +34944,535 @@ var LockPanelPayloadSchema = external_exports.object({
   locked: external_exports.boolean()
 }).strict();
 
+// packages/provisioning/dist/crypto.js
+var import_node_crypto = require("node:crypto");
+function decodeBase64Url(value) {
+  return Buffer.from(value, "base64url");
+}
+function encodeBase64Url(value) {
+  return Buffer.from(value).toString("base64url");
+}
+function computeClaimProof(secret, nonce, challenge, claimId) {
+  return (0, import_node_crypto.createHmac)("sha256", secret).update(nonce).update(challenge).update(claimId).digest();
+}
+function verifyClaimProof(secret, nonce, challenge, claimId, proof) {
+  const expected = computeClaimProof(secret, nonce, challenge, claimId);
+  const candidate = Buffer.from(proof);
+  const valid = candidate.length === expected.length && (0, import_node_crypto.timingSafeEqual)(candidate, expected);
+  expected.fill(0);
+  return valid;
+}
+function encryptCommissioningGrant(mobilePublicKey, transactionId, expiresAt, plaintext) {
+  const mobileKey = (0, import_node_crypto.createPublicKey)({ key: decodeBase64Url(mobilePublicKey), format: "der", type: "spki" });
+  const serverKeys = (0, import_node_crypto.generateKeyPairSync)("x25519");
+  const sharedSecret = (0, import_node_crypto.diffieHellman)({ privateKey: serverKeys.privateKey, publicKey: mobileKey });
+  const salt = Buffer.from(transactionId, "utf8");
+  const info = Buffer.from("rhophi-provisioning-v1", "utf8");
+  const key = Buffer.from((0, import_node_crypto.hkdfSync)("sha256", sharedSecret, salt, info, 32));
+  const nonce = (0, import_node_crypto.randomBytes)(12);
+  const cipher = (0, import_node_crypto.createCipheriv)("aes-256-gcm", key, nonce);
+  cipher.setAAD(Buffer.from(transactionId, "utf8"));
+  const ciphertext = Buffer.concat([cipher.update(plaintext), cipher.final()]);
+  const tag = cipher.getAuthTag();
+  const serverPublicKey = serverKeys.publicKey.export({ type: "spki", format: "der" });
+  key.fill(0);
+  sharedSecret.fill(0);
+  return {
+    version: 1,
+    algorithm: "X25519-HKDF-SHA256-AES-256-GCM",
+    server_ephemeral_public_key: encodeBase64Url(serverPublicKey),
+    nonce: encodeBase64Url(nonce),
+    ciphertext: encodeBase64Url(ciphertext),
+    authentication_tag: encodeBase64Url(tag),
+    transaction_id: transactionId,
+    expires_at: expiresAt
+  };
+}
+
+// packages/provisioning/dist/encryptedRegistry.js
+var import_node_crypto2 = require("node:crypto");
+var import_promises = require("node:fs/promises");
+var EncryptedFileDeviceProvisioningRegistry = class {
+  registryPath;
+  keyPath;
+  constructor(registryPath, keyPath) {
+    this.registryPath = registryPath;
+    this.keyPath = keyPath;
+  }
+  async findByClaimId(claimId) {
+    const [keyFile, registryFile] = await Promise.all([
+      readProtectedFile(this.keyPath),
+      (0, import_promises.readFile)(this.registryPath, "utf8")
+    ]);
+    const masterKey = decodeMasterKey(keyFile);
+    try {
+      const envelope = parseEnvelope(registryFile);
+      const candidate = envelope.records.find((record) => constantTimeTextEqual(record.claim_id, claimId));
+      if (!candidate)
+        return void 0;
+      return decryptRecord(masterKey, candidate);
+    } finally {
+      masterKey.fill(0);
+      keyFile.fill(0);
+    }
+  }
+};
+async function readProtectedFile(path) {
+  const metadata = await (0, import_promises.stat)(path);
+  if (process.platform !== "win32" && (metadata.mode & 63) !== 0) {
+    throw new Error(`Provisioning key permissions are too broad: ${path}`);
+  }
+  return (0, import_promises.readFile)(path);
+}
+function decodeMasterKey(value) {
+  const trimmed = value.toString("utf8").trim();
+  const key = /^[0-9a-fA-F]{64}$/u.test(trimmed) ? Buffer.from(trimmed, "hex") : Buffer.from(value);
+  if (key.length !== 32) {
+    key.fill(0);
+    throw new Error("Provisioning registry key must be exactly 32 bytes");
+  }
+  return key;
+}
+function parseEnvelope(value) {
+  const parsed = JSON.parse(value);
+  if (parsed.version !== 1 || parsed.algorithm !== "AES-256-GCM" || !Array.isArray(parsed.records)) {
+    throw new Error("Unsupported provisioning registry format");
+  }
+  return parsed;
+}
+function decryptRecord(masterKey, record) {
+  const salt = Buffer.from(record.claim_id, "utf8");
+  const key = Buffer.from((0, import_node_crypto2.hkdfSync)("sha256", masterKey, salt, Buffer.from("rhophi-registry-v1", "utf8"), 32));
+  const nonce = decodeBase64Url(record.nonce);
+  const ciphertext = decodeBase64Url(record.ciphertext);
+  const tag = decodeBase64Url(record.authentication_tag);
+  const aad = Buffer.from(`rhophi-registry-v1:${record.claim_id}`, "utf8");
+  let plaintext = Buffer.alloc(0);
+  try {
+    if (nonce.length !== 12 || tag.length !== 16)
+      throw new Error("Invalid encrypted registry record");
+    const decipher = (0, import_node_crypto2.createDecipheriv)("aes-256-gcm", key, nonce);
+    decipher.setAAD(aad);
+    decipher.setAuthTag(tag);
+    plaintext = Buffer.concat([decipher.update(ciphertext), decipher.final()]);
+    const parsed = JSON.parse(plaintext.toString("utf8"));
+    const claimSecret = decodeBase64Url(parsed.claim_secret);
+    if (claimSecret.length !== 32)
+      throw new Error("Invalid claim secret length");
+    if (!Number.isInteger(parsed.product_id) || parsed.product_id <= 0 || parsed.product_id > 65535)
+      throw new Error("Invalid product ID");
+    if (!Number.isInteger(parsed.discriminator) || parsed.discriminator < 0 || parsed.discriminator > 4095)
+      throw new Error("Invalid discriminator");
+    if (!Number.isInteger(parsed.setup_passcode) || parsed.setup_passcode <= 0 || parsed.setup_passcode > 99999998)
+      throw new Error("Invalid setup passcode");
+    return {
+      claimId: record.claim_id,
+      productId: parsed.product_id,
+      claimSecret,
+      setupPasscode: parsed.setup_passcode,
+      discriminator: parsed.discriminator,
+      deviceId: parsed.device_id
+    };
+  } finally {
+    key.fill(0);
+    nonce.fill(0);
+    ciphertext.fill(0);
+    tag.fill(0);
+    plaintext.fill(0);
+  }
+}
+function constantTimeTextEqual(left, right) {
+  const leftValue = Buffer.from(left, "utf8");
+  const rightValue = Buffer.from(right, "utf8");
+  if (leftValue.length !== rightValue.length)
+    return false;
+  return (0, import_node_crypto2.timingSafeEqual)(leftValue, rightValue);
+}
+
+// packages/provisioning/dist/service.js
+var import_node_crypto3 = require("node:crypto");
+
+// packages/provisioning/dist/transactionStore.js
+var import_node_fs = require("node:fs");
+var import_node_path = require("node:path");
+var InMemoryProvisioningTransactionStore = class {
+  transactions = [];
+  load() {
+    return structuredClone(this.transactions);
+  }
+  save(transactions) {
+    this.transactions = structuredClone(transactions);
+  }
+};
+var FileProvisioningTransactionStore = class {
+  path;
+  constructor(path) {
+    this.path = path;
+  }
+  load() {
+    if (!(0, import_node_fs.existsSync)(this.path))
+      return [];
+    const parsed = JSON.parse((0, import_node_fs.readFileSync)(this.path, "utf8"));
+    if (parsed.version !== 1 || !Array.isArray(parsed.transactions))
+      throw new Error("Unsupported provisioning transaction store");
+    return parsed.transactions;
+  }
+  save(transactions) {
+    (0, import_node_fs.mkdirSync)((0, import_node_path.dirname)(this.path), { recursive: true, mode: 448 });
+    const temporary = `${this.path}.tmp`;
+    (0, import_node_fs.writeFileSync)(temporary, JSON.stringify({ version: 1, transactions }), { encoding: "utf8", mode: 384 });
+    (0, import_node_fs.chmodSync)(temporary, 384);
+    (0, import_node_fs.renameSync)(temporary, this.path);
+  }
+};
+
+// packages/provisioning/dist/service.js
+var terminalStates = ["COMPLETE", "CANCELLED", "EXPIRED"];
+var ProvisioningServiceError = class extends Error {
+  code;
+  retryable;
+  constructor(code, message, retryable = false) {
+    super(message);
+    this.code = code;
+    this.retryable = retryable;
+  }
+};
+var ProvisioningService = class {
+  registry;
+  datasetProvider;
+  transactions = /* @__PURE__ */ new Map();
+  activeByClaim = /* @__PURE__ */ new Map();
+  ttlMs;
+  maxClaimAttempts;
+  now;
+  store;
+  constructor(registry, datasetProvider, options = {}) {
+    this.registry = registry;
+    this.datasetProvider = datasetProvider;
+    this.ttlMs = options.transactionTtlMs ?? 10 * 60 * 1e3;
+    this.maxClaimAttempts = options.maxClaimAttempts ?? 5;
+    this.now = options.now ?? Date.now;
+    this.store = options.transactionStore ?? new InMemoryProvisioningTransactionStore();
+    for (const stored of this.store.load()) {
+      const transaction = fromStored(stored);
+      this.transactions.set(transaction.transactionId, transaction);
+      if (!terminalStates.includes(transaction.state))
+        this.activeByClaim.set(transaction.claimId, transaction.transactionId);
+    }
+    this.expireTransactions();
+  }
+  async createSession(input) {
+    const request = CommissioningSessionCreateRequestSchema.parse(input);
+    this.expireTransactions();
+    const claimId = decodeBase64Url(request.claim_id);
+    if (claimId.length !== 16) {
+      claimId.fill(0);
+      throw new ProvisioningServiceError("INVALID_DEVICE", "Claim ID must be 16 bytes");
+    }
+    claimId.fill(0);
+    const record = await this.registry.findByClaimId(request.claim_id);
+    if (!record || record.productId !== request.product_id) {
+      record?.claimSecret.fill(0);
+      throw new ProvisioningServiceError("INVALID_DEVICE", "Device claim is not registered");
+    }
+    record.claimSecret.fill(0);
+    const activeId = this.activeByClaim.get(request.claim_id);
+    if (activeId && !terminalStates.includes(this.transactions.get(activeId)?.state ?? "EXPIRED")) {
+      throw new ProvisioningServiceError("TRANSACTION_CONFLICT", "A provisioning transaction is already active", true);
+    }
+    const now = this.now();
+    const transaction = {
+      transactionId: (0, import_node_crypto3.randomUUID)(),
+      claimId: request.claim_id,
+      productId: request.product_id,
+      mobilePublicKey: request.mobile_ephemeral_public_key,
+      challenge: (0, import_node_crypto3.randomBytes)(32),
+      state: "CLAIM_CHALLENGE",
+      createdAtMs: now,
+      expiresAtMs: now + this.ttlMs,
+      failedAttempts: 0,
+      usedNonces: /* @__PURE__ */ new Set()
+    };
+    this.transactions.set(transaction.transactionId, transaction);
+    this.activeByClaim.set(transaction.claimId, transaction.transactionId);
+    this.persist();
+    return CommissioningSessionCreateResponseSchema.parse({
+      transaction_id: transaction.transactionId,
+      challenge: encodeBase64Url(transaction.challenge),
+      expires_at: new Date(transaction.expiresAtMs).toISOString(),
+      state: "CLAIM_CHALLENGE"
+    });
+  }
+  async submitClaim(transactionId, input) {
+    const request = ClaimProofRequestSchema.parse(input);
+    const transaction = this.requireActive(transactionId, "CLAIM_CHALLENGE");
+    if (transaction.failedAttempts >= this.maxClaimAttempts) {
+      throw new ProvisioningServiceError("CLAIM_RATE_LIMITED", "Claim attempt limit reached");
+    }
+    const nonce = decodeBase64Url(request.device_nonce);
+    const proof = decodeBase64Url(request.proof);
+    if (nonce.length !== 16 || proof.length !== 32) {
+      nonce.fill(0);
+      proof.fill(0);
+      throw new ProvisioningServiceError("CLAIM_INVALID", "Claim nonce or proof length is invalid");
+    }
+    const nonceKey = request.device_nonce;
+    if (transaction.usedNonces.has(nonceKey)) {
+      nonce.fill(0);
+      proof.fill(0);
+      throw new ProvisioningServiceError("CLAIM_REPLAYED", "Device nonce was already used");
+    }
+    transaction.usedNonces.add(nonceKey);
+    const record = await this.registry.findByClaimId(transaction.claimId);
+    if (!record || record.productId !== transaction.productId) {
+      nonce.fill(0);
+      proof.fill(0);
+      record?.claimSecret.fill(0);
+      throw new ProvisioningServiceError("INVALID_DEVICE", "Device claim is not registered");
+    }
+    let dataset;
+    let plaintext;
+    try {
+      const claimId = decodeBase64Url(transaction.claimId);
+      const valid = claimId.length === 16 && verifyClaimProof(record.claimSecret, nonce, transaction.challenge, claimId, proof);
+      claimId.fill(0);
+      if (!valid) {
+        transaction.failedAttempts += 1;
+        this.persist();
+        throw new ProvisioningServiceError("CLAIM_INVALID", "Device claim proof is invalid");
+      }
+      transaction.state = "CLAIM_VERIFIED";
+      dataset = await this.datasetProvider.getActiveOperationalDataset();
+      const expiresAt = new Date(transaction.expiresAtMs).toISOString();
+      plaintext = Buffer.from(JSON.stringify({
+        version: 1,
+        transaction_id: transaction.transactionId,
+        expires_at: expiresAt,
+        setup_passcode: record.setupPasscode,
+        discriminator: record.discriminator,
+        thread_operational_dataset: encodeBase64Url(dataset)
+      }), "utf8");
+      const grant = encryptCommissioningGrant(transaction.mobilePublicKey, transaction.transactionId, expiresAt, plaintext);
+      transaction.state = "GRANT_ISSUED";
+      this.persist();
+      return ClaimProofResponseSchema.parse({ transaction_id: transaction.transactionId, state: "GRANT_ISSUED", grant });
+    } finally {
+      nonce.fill(0);
+      proof.fill(0);
+      record.claimSecret.fill(0);
+      dataset?.fill(0);
+      plaintext?.fill(0);
+    }
+  }
+  getSession(transactionId) {
+    const transaction = this.requireTransaction(transactionId);
+    if (this.expireTransaction(transaction))
+      this.persist();
+    return this.toPublicSession(transaction);
+  }
+  markThreadAttached(transactionId, temporaryNodeId) {
+    const transaction = this.requireActive(transactionId, "GRANT_ISSUED");
+    transaction.temporaryNodeId = temporaryNodeId;
+    transaction.state = "TEMP_FABRIC_COMMISSIONED";
+    this.persist();
+    return this.toPublicSession(transaction);
+  }
+  markWindowOpen(transactionId) {
+    const transaction = this.requireTransaction(transactionId);
+    if (this.expireTransaction(transaction))
+      this.persist();
+    if (!["TEMP_FABRIC_COMMISSIONED", "BBB_COMMISSION_FAILED", "NODE_NOT_DISCOVERED", "SUBSCRIPTION_FAILED"].includes(transaction.state)) {
+      throw new ProvisioningServiceError("TRANSACTION_STATE_INVALID", `Cannot open a window from ${transaction.state}`);
+    }
+    transaction.state = "WINDOW_OPEN";
+    delete transaction.error;
+    this.persist();
+    return this.toPublicSession(transaction);
+  }
+  markBbbCommissioning(transactionId) {
+    const transaction = this.requireActive(transactionId, "WINDOW_OPEN");
+    transaction.state = "BBB_FABRIC_COMMISSIONING";
+    this.persist();
+    return this.toPublicSession(transaction);
+  }
+  markEndpointDiscovery(transactionId, bbbNodeId) {
+    const transaction = this.requireActive(transactionId, "BBB_FABRIC_COMMISSIONING");
+    transaction.bbbNodeId = bbbNodeId;
+    transaction.state = "ENDPOINT_DISCOVERY";
+    this.persist();
+    return this.toPublicSession(transaction);
+  }
+  markSubscribing(transactionId) {
+    const transaction = this.requireActive(transactionId, "ENDPOINT_DISCOVERY");
+    transaction.state = "SUBSCRIBING";
+    this.persist();
+    return this.toPublicSession(transaction);
+  }
+  markBbbFabricReady(transactionId) {
+    const transaction = this.requireActive(transactionId, "SUBSCRIBING");
+    transaction.state = "TEMP_FABRIC_REMOVING";
+    this.persist();
+    return this.toPublicSession(transaction);
+  }
+  markFailure(transactionId, state, code) {
+    const transaction = this.requireTransaction(transactionId);
+    transaction.state = state;
+    transaction.error = { code, message: code, retryable: true };
+    this.persist();
+    return this.toPublicSession(transaction);
+  }
+  complete(transactionId, temporaryFabricRemoved) {
+    const transaction = this.requireTransaction(transactionId);
+    if (this.expireTransaction(transaction))
+      this.persist();
+    if (!["TEMP_FABRIC_REMOVING", "CLEANUP_PENDING"].includes(transaction.state)) {
+      throw new ProvisioningServiceError("TRANSACTION_STATE_INVALID", `Cannot complete from ${transaction.state}`);
+    }
+    transaction.state = temporaryFabricRemoved ? "COMPLETE" : "CLEANUP_PENDING";
+    if (temporaryFabricRemoved) {
+      this.activeByClaim.delete(transaction.claimId);
+      transaction.challenge.fill(0);
+    }
+    this.persist();
+    return this.toPublicSession(transaction);
+  }
+  cancel(transactionId) {
+    const transaction = this.requireTransaction(transactionId);
+    if (transaction.state === "COMPLETE")
+      return this.toPublicSession(transaction);
+    transaction.state = "CANCELLED";
+    transaction.challenge.fill(0);
+    this.activeByClaim.delete(transaction.claimId);
+    this.persist();
+    return this.toPublicSession(transaction);
+  }
+  requireTransaction(transactionId) {
+    const transaction = this.transactions.get(transactionId);
+    if (!transaction)
+      throw new ProvisioningServiceError("TRANSACTION_NOT_FOUND", "Provisioning transaction not found");
+    return transaction;
+  }
+  requireActive(transactionId, expected) {
+    const transaction = this.requireTransaction(transactionId);
+    if (this.expireTransaction(transaction))
+      this.persist();
+    if (transaction.state === "EXPIRED")
+      throw new ProvisioningServiceError("CLAIM_EXPIRED", "Provisioning transaction expired");
+    if (transaction.state !== expected) {
+      throw new ProvisioningServiceError("TRANSACTION_STATE_INVALID", `Expected ${expected}, found ${transaction.state}`);
+    }
+    return transaction;
+  }
+  expireTransactions() {
+    let changed = false;
+    for (const transaction of this.transactions.values())
+      changed = this.expireTransaction(transaction) || changed;
+    if (changed)
+      this.persist();
+  }
+  expireTransaction(transaction) {
+    if (this.now() <= transaction.expiresAtMs || terminalStates.includes(transaction.state))
+      return false;
+    transaction.state = "EXPIRED";
+    transaction.challenge.fill(0);
+    this.activeByClaim.delete(transaction.claimId);
+    return true;
+  }
+  persist() {
+    this.store.save(Array.from(this.transactions.values(), toStored));
+  }
+  toPublicSession(transaction) {
+    const value = {
+      transaction_id: transaction.transactionId,
+      claim_id: transaction.claimId,
+      product_id: transaction.productId,
+      state: transaction.state,
+      created_at: new Date(transaction.createdAtMs).toISOString(),
+      expires_at: new Date(transaction.expiresAtMs).toISOString()
+    };
+    if (transaction.temporaryNodeId !== void 0)
+      value.temporary_node_id = transaction.temporaryNodeId;
+    if (transaction.bbbNodeId !== void 0)
+      value.bbb_node_id = transaction.bbbNodeId;
+    if (transaction.error !== void 0)
+      value.error = transaction.error;
+    return CommissioningSessionSchema.parse(value);
+  }
+};
+function toStored(transaction) {
+  return {
+    transactionId: transaction.transactionId,
+    claimId: transaction.claimId,
+    productId: transaction.productId,
+    mobilePublicKey: transaction.mobilePublicKey,
+    challenge: encodeBase64Url(transaction.challenge),
+    state: transaction.state,
+    createdAtMs: transaction.createdAtMs,
+    expiresAtMs: transaction.expiresAtMs,
+    failedAttempts: transaction.failedAttempts,
+    usedNonces: Array.from(transaction.usedNonces),
+    ...transaction.temporaryNodeId === void 0 ? {} : { temporaryNodeId: transaction.temporaryNodeId },
+    ...transaction.bbbNodeId === void 0 ? {} : { bbbNodeId: transaction.bbbNodeId },
+    ...transaction.error === void 0 ? {} : { error: transaction.error }
+  };
+}
+function fromStored(transaction) {
+  const challenge = decodeBase64Url(transaction.challenge);
+  if (challenge.length !== 32)
+    throw new Error("Stored provisioning challenge length is invalid");
+  return {
+    transactionId: transaction.transactionId,
+    claimId: transaction.claimId,
+    productId: transaction.productId,
+    mobilePublicKey: transaction.mobilePublicKey,
+    challenge,
+    state: transaction.state,
+    createdAtMs: transaction.createdAtMs,
+    expiresAtMs: transaction.expiresAtMs,
+    failedAttempts: transaction.failedAttempts,
+    usedNonces: new Set(transaction.usedNonces),
+    ...transaction.temporaryNodeId === void 0 ? {} : { temporaryNodeId: transaction.temporaryNodeId },
+    ...transaction.bbbNodeId === void 0 ? {} : { bbbNodeId: transaction.bbbNodeId },
+    ...transaction.error === void 0 ? {} : { error: transaction.error }
+  };
+}
+
+// packages/provisioning/dist/threadDataset.js
+var import_promises2 = require("node:fs/promises");
+var FileThreadDatasetProvider = class {
+  datasetPath;
+  constructor(datasetPath) {
+    this.datasetPath = datasetPath;
+  }
+  async getActiveOperationalDataset() {
+    const metadata = await (0, import_promises2.stat)(this.datasetPath);
+    if (process.platform !== "win32" && (metadata.mode & 63) !== 0) {
+      throw new Error(`Thread Dataset permissions are too broad: ${this.datasetPath}`);
+    }
+    const encoded = (await (0, import_promises2.readFile)(this.datasetPath, "utf8")).trim();
+    if (!/^[0-9a-fA-F]+$/u.test(encoded) || encoded.length % 2 !== 0) {
+      throw new Error("Thread Dataset must be hexadecimal TLVs");
+    }
+    const dataset = Buffer.from(encoded, "hex");
+    if (dataset.length < 16 || dataset.length > 254) {
+      dataset.fill(0);
+      throw new Error("Thread Dataset length is invalid");
+    }
+    return dataset;
+  }
+};
+
 // packages/webui-bff/src/main.ts
 var import_pino = __toESM(require_pino(), 1);
 
 // packages/webui-bff/src/auth.ts
-var import_node_crypto = require("node:crypto");
+var import_node_crypto4 = require("node:crypto");
 var PARAMS = { N: 16384, r: 8, p: 1 };
 function derive(password, salt, length, options) {
-  return new Promise((resolve2, reject) => (0, import_node_crypto.scrypt)(password, salt, length, options, (e, key) => e ? reject(e) : resolve2(key)));
+  return new Promise((resolve2, reject) => (0, import_node_crypto4.scrypt)(password, salt, length, options, (e, key) => e ? reject(e) : resolve2(key)));
 }
 async function hashPassword(password) {
-  const salt = (0, import_node_crypto.randomBytes)(32), key = await derive(password, salt, 32, { ...PARAMS, maxmem: 64 * 1024 * 1024 });
+  const salt = (0, import_node_crypto4.randomBytes)(32), key = await derive(password, salt, 32, { ...PARAMS, maxmem: 64 * 1024 * 1024 });
   return `scrypt$N=${PARAMS.N},r=${PARAMS.r},p=${PARAMS.p}$${salt.toString("base64")}$${key.toString("base64")}`;
 }
 async function verifyPassword(password, record) {
@@ -34825,19 +35480,43 @@ async function verifyPassword(password, record) {
     const [, params, salt64, key64] = record.split("$");
     if (!params || !salt64 || !key64) return false;
     const v = Object.fromEntries(params.split(",").map((x) => x.split("="))), expected = Buffer.from(key64, "base64"), actual = await derive(password, Buffer.from(salt64, "base64"), expected.length, { N: Number(v.N), r: Number(v.r), p: Number(v.p), maxmem: 64 * 1024 * 1024 });
-    return expected.length === actual.length && (0, import_node_crypto.timingSafeEqual)(expected, actual);
+    return expected.length === actual.length && (0, import_node_crypto4.timingSafeEqual)(expected, actual);
   } catch {
     return false;
   }
 }
 
 // packages/webui-bff/src/config.ts
-var Schema = external_exports.object({ WEBUI_BIND: external_exports.string().default("127.0.0.1"), WEBUI_PORT: external_exports.coerce.number().int().positive().default(8080), WEBUI_PUBLIC_ORIGIN: external_exports.string().url(), WEBUI_ROOT: external_exports.string().default("/opt/matter-webui/public"), WEBUI_ADMIN_USERNAME: external_exports.string().min(1), WEBUI_ADMIN_PASSWORD_HASH: external_exports.string().min(20), WEBUI_SESSION_TTL_S: external_exports.coerce.number().default(604800), WEBUI_SESSION_IDLE_S: external_exports.coerce.number().default(86400), WEBUI_STATE_DIR: external_exports.string().default("/var/lib/matter-webui"), MQTT_URL: external_exports.string().default("mqtt://127.0.0.1:1883"), MQTT_USERNAME: external_exports.string(), MQTT_PASSWORD: external_exports.string(), LOG_LEVEL: external_exports.string().default("info") });
+var BooleanString = external_exports.enum(["true", "false"]).default("false").transform((value) => value === "true");
+var Schema = external_exports.object({
+  WEBUI_BIND: external_exports.string().default("127.0.0.1"),
+  WEBUI_PORT: external_exports.coerce.number().int().positive().default(8080),
+  WEBUI_PUBLIC_ORIGIN: external_exports.string().url(),
+  MOBILE_ALLOWED_ORIGINS: external_exports.string().default("https://localhost"),
+  WEBUI_ROOT: external_exports.string().default("/opt/matter-webui/public"),
+  WEBUI_ADMIN_USERNAME: external_exports.string().min(1),
+  WEBUI_ADMIN_PASSWORD_HASH: external_exports.string().min(20),
+  WEBUI_SESSION_TTL_S: external_exports.coerce.number().int().positive().default(604800),
+  WEBUI_SESSION_IDLE_S: external_exports.coerce.number().int().positive().default(86400),
+  WEBUI_STATE_DIR: external_exports.string().default("/var/lib/matter-webui"),
+  MQTT_URL: external_exports.string().default("mqtt://127.0.0.1:1883"),
+  MQTT_USERNAME: external_exports.string(),
+  MQTT_PASSWORD: external_exports.string(),
+  LOG_LEVEL: external_exports.string().default("info"),
+  PROVISIONING_ENABLED: BooleanString,
+  PROVISIONING_REGISTRY_PATH: external_exports.string().default("/etc/matter-provisioning/devices.registry.enc"),
+  PROVISIONING_REGISTRY_KEY_FILE: external_exports.string().default("/etc/matter-provisioning/registry.key"),
+  THREAD_DATASET_PATH: external_exports.string().default("/etc/matter-provisioning/thread-dataset.hex"),
+  PROVISIONING_TRANSACTION_PATH: external_exports.string().default("/var/lib/matter-web-auth/provisioning-transactions.json"),
+  MATTER_SOCKET_PATH: external_exports.string().default("/run/matter-controller/controller.sock"),
+  PROVISIONING_TTL_S: external_exports.coerce.number().int().min(60).max(3600).default(600),
+  PROVISIONING_MAX_CLAIM_ATTEMPTS: external_exports.coerce.number().int().min(1).max(20).default(5)
+});
 var loadConfig = (env = process.env) => Schema.parse(env);
 
 // packages/webui-bff/src/bridge.ts
 var import_mqtt = __toESM(require_build2(), 1);
-var import_node_crypto2 = require("node:crypto");
+var import_node_crypto5 = require("node:crypto");
 var MqttBridge = class {
   client;
   pending = /* @__PURE__ */ new Map();
@@ -34885,7 +35564,7 @@ var MqttBridge = class {
   async send(input) {
     if (!this.connected) throw new Error("MQTT unavailable");
     if (this.pending.size >= 64) throw new Error("Too many pending commands");
-    const req = CommandRequestSchema.parse({ ...input, request_id: (0, import_node_crypto2.randomUUID)() });
+    const req = CommandRequestSchema.parse({ ...input, request_id: (0, import_node_crypto5.randomUUID)() });
     const result = new Promise((resolve2, reject) => {
       const timer = setTimeout(() => {
         this.pending.delete(req.request_id);
@@ -34902,42 +35581,47 @@ var MqttBridge = class {
 };
 
 // packages/webui-bff/src/sessions.ts
-var import_node_crypto3 = require("node:crypto");
-var import_promises = require("node:fs/promises");
-var import_node_path = require("node:path");
+var import_node_crypto6 = require("node:crypto");
+var import_promises3 = require("node:fs/promises");
+var import_node_path2 = require("node:path");
 var SessionStore = class {
-  constructor(dir, ttlMs, idleMs) {
+  constructor(dir, ttlMs, idleMs, maxPerUserAndKind = 5) {
     this.dir = dir;
     this.ttlMs = ttlMs;
     this.idleMs = idleMs;
-    this.file = (0, import_node_path.join)(dir, "sessions.json");
+    this.maxPerUserAndKind = maxPerUserAndKind;
+    this.file = (0, import_node_path2.join)(dir, "sessions.json");
   }
   sessions = /* @__PURE__ */ new Map();
   file;
   async load() {
-    await (0, import_promises.mkdir)(this.dir, { recursive: true });
+    await (0, import_promises3.mkdir)(this.dir, { recursive: true });
     try {
-      const rows = JSON.parse(await (0, import_promises.readFile)(this.file, "utf8"));
-      for (const s of rows) this.sessions.set(s.hash, s);
+      const rows = JSON.parse(await (0, import_promises3.readFile)(this.file, "utf8"));
+      for (const row of rows) {
+        const s = { ...row, kind: row.kind ?? "web" };
+        this.sessions.set(s.hash, s);
+      }
     } catch {
     }
   }
   digest(v) {
-    return (0, import_node_crypto3.createHash)("sha256").update(v).digest("hex");
+    return (0, import_node_crypto6.createHash)("sha256").update(v).digest("hex");
   }
-  async create(username) {
-    this.sessions.clear();
-    const sid = (0, import_node_crypto3.randomBytes)(32).toString("base64url");
+  async create(username, kind = "web") {
+    const same = [...this.sessions.values()].filter((s2) => s2.username === username && s2.kind === kind).sort((a, b) => a.created - b.created);
+    for (const s2 of same.slice(0, Math.max(0, same.length - this.maxPerUserAndKind + 1))) this.sessions.delete(s2.hash);
+    const sid = (0, import_node_crypto6.randomBytes)(32).toString("base64url");
     const now = Date.now();
-    const s = { hash: this.digest(sid), csrf: (0, import_node_crypto3.randomBytes)(32).toString("base64url"), username, created: now, lastSeen: now };
+    const s = { hash: this.digest(sid), csrf: (0, import_node_crypto6.randomBytes)(32).toString("base64url"), username, kind, created: now, lastSeen: now };
     this.sessions.set(s.hash, s);
     await this.save();
     return { sid, session: s };
   }
-  get(sid) {
+  get(sid, kind) {
     if (!sid) return;
     const s = this.sessions.get(this.digest(sid));
-    if (!s) return;
+    if (!s || kind && s.kind !== kind) return;
     const now = Date.now();
     if (now - s.created > this.ttlMs || now - s.lastSeen > this.idleMs) {
       this.sessions.delete(s.hash);
@@ -34956,165 +35640,535 @@ var SessionStore = class {
     await this.save();
   }
   csrfValid(s, token) {
-    if (!token) return false;
+    if (!token || s.kind !== "web") return false;
     const a = Buffer.from(s.csrf), b = Buffer.from(token);
-    return a.length === b.length && (0, import_node_crypto3.timingSafeEqual)(a, b);
+    return a.length === b.length && (0, import_node_crypto6.timingSafeEqual)(a, b);
   }
   expiresAt(s) {
     return new Date(Math.min(s.created + this.ttlMs, s.lastSeen + this.idleMs)).toISOString();
   }
   async save() {
     const tmp = `${this.file}.tmp`;
-    await (0, import_promises.writeFile)(tmp, JSON.stringify([...this.sessions.values()]), { mode: 384 });
-    await (0, import_promises.rename)(tmp, this.file);
+    await (0, import_promises3.writeFile)(tmp, JSON.stringify([...this.sessions.values()]), { mode: 384 });
+    await (0, import_promises3.rename)(tmp, this.file);
   }
 };
 
+// packages/webui-bff/src/controllerManagementClient.ts
+var import_node_crypto7 = require("node:crypto");
+var import_node_net = require("node:net");
+var ControllerManagementClient = class {
+  constructor(socketPath, timeoutMs = 3e4) {
+    this.socketPath = socketPath;
+    this.timeoutMs = timeoutMs;
+  }
+  listNodes() {
+    return this.call("listNodes", void 0);
+  }
+  commissionOnNetwork(input) {
+    return this.call("commissionOnNetwork", input);
+  }
+  removeNode(nodeId) {
+    return this.call("removeNode", { node_id: nodeId });
+  }
+  describeNode(nodeId) {
+    return this.call("describeNode", { node_id: nodeId });
+  }
+  read(nodeId, endpoint, cluster, attribute) {
+    return this.call("read", { node_id: nodeId, endpoint, cluster, attribute });
+  }
+  subscribe(nodeId) {
+    return this.call("subscribe", { node_id: nodeId });
+  }
+  call(method, params) {
+    return new Promise((resolve2, reject) => {
+      const id = (0, import_node_crypto7.randomUUID)();
+      const socket = (0, import_node_net.createConnection)({ path: this.socketPath });
+      let buffer = "";
+      const timer = setTimeout(() => finish(new Error("Matter controller management RPC timed out")), this.timeoutMs);
+      const finish = (error, value) => {
+        clearTimeout(timer);
+        socket.destroy();
+        if (error) reject(error);
+        else resolve2(value);
+      };
+      socket.on("connect", () => socket.write(`${JSON.stringify({ id, method, params })}
+`));
+      socket.on("error", (error) => finish(error));
+      socket.setEncoding("utf8");
+      socket.on("data", (chunk) => {
+        buffer += chunk;
+        let newline = buffer.indexOf("\n");
+        while (newline >= 0) {
+          const line = buffer.slice(0, newline);
+          buffer = buffer.slice(newline + 1);
+          newline = buffer.indexOf("\n");
+          if (!line.trim()) continue;
+          const response = JSON.parse(line);
+          if ("method" in response) continue;
+          if (response.id !== id) return finish(new Error("Matter controller management RPC correlation mismatch"));
+          if (response.error) return finish(new Error(`${response.error.code}: ${response.error.message}`));
+          return finish(void 0, response.result);
+        }
+      });
+    });
+  }
+};
+
+// packages/webui-bff/src/provisioningCoordinator.ts
+var ProvisioningCoordinator = class {
+  constructor(provisioning, controller) {
+    this.provisioning = provisioning;
+    this.controller = controller;
+  }
+  listeners = /* @__PURE__ */ new Set();
+  async createSession(input) {
+    const result = await this.provisioning.createSession(CommissioningSessionCreateRequestSchema.parse(input));
+    this.emit(result.transaction_id, result.state);
+    return result;
+  }
+  async submitClaim(transactionId, input) {
+    const result = await this.provisioning.submitClaim(transactionId, ClaimProofRequestSchema.parse(input));
+    this.emit(transactionId, result.state);
+    return result;
+  }
+  getSession(transactionId) {
+    return this.provisioning.getSession(transactionId);
+  }
+  cancel(transactionId) {
+    const result = this.provisioning.cancel(transactionId);
+    this.emitSession(result);
+    return result;
+  }
+  threadAttached(transactionId, input) {
+    const request = ThreadAttachedRequestSchema.parse(input);
+    const result = this.provisioning.markThreadAttached(transactionId, String(request.temporary_node_id));
+    this.emitSession(result);
+    return result;
+  }
+  async commissionBbbFabric(transactionId, input) {
+    const request = CommissioningWindowRequestSchema.parse(input);
+    const previous = this.provisioning.getSession(transactionId);
+    this.emitSession(this.provisioning.markWindowOpen(transactionId));
+    this.emitSession(this.provisioning.markBbbCommissioning(transactionId));
+    let commissioned;
+    if (previous.bbb_node_id && ["NODE_NOT_DISCOVERED", "SUBSCRIPTION_FAILED"].includes(previous.state)) {
+      commissioned = { node_id: previous.bbb_node_id };
+    } else {
+      try {
+        commissioned = await this.controller.commissionOnNetwork({
+          setup_passcode: request.setup_passcode,
+          discriminator: request.discriminator,
+          timeout_seconds: request.timeout_seconds,
+          ...request.known_ipv6_address === void 0 ? {} : { known_ipv6_address: request.known_ipv6_address }
+        });
+      } catch (error) {
+        this.emitSession(this.provisioning.markFailure(transactionId, "BBB_COMMISSION_FAILED", "BBB_COMMISSION_FAILED"));
+        throw error;
+      }
+    }
+    this.emitSession(this.provisioning.markEndpointDiscovery(transactionId, commissioned.node_id));
+    let descriptor;
+    let onOffEndpoint;
+    try {
+      descriptor = await this.controller.describeNode(commissioned.node_id);
+      const endpoints = descriptor.endpoints ?? [];
+      onOffEndpoint = endpoints.find((endpoint) => endpoint.server_clusters?.includes(6))?.endpoint;
+      if (onOffEndpoint === void 0) throw new Error("Commissioned node has no OnOff server endpoint");
+      await this.controller.read(commissioned.node_id, onOffEndpoint, 6, 0);
+    } catch (error) {
+      this.emitSession(this.provisioning.markFailure(transactionId, "NODE_NOT_DISCOVERED", "NODE_NOT_FOUND"));
+      throw error;
+    }
+    this.emitSession(this.provisioning.markSubscribing(transactionId));
+    try {
+      await this.controller.subscribe(commissioned.node_id);
+    } catch (error) {
+      this.emitSession(this.provisioning.markFailure(transactionId, "SUBSCRIPTION_FAILED", "SUBSCRIPTION_FAILED"));
+      throw error;
+    }
+    const session = this.provisioning.markBbbFabricReady(transactionId);
+    this.emitSession(session);
+    return { session, descriptor };
+  }
+  complete(transactionId, input) {
+    const request = CommissioningCompleteRequestSchema.parse(input);
+    const session = this.provisioning.getSession(transactionId);
+    if (session.bbb_node_id !== String(request.bbb_node_id)) throw new Error("BBB node id does not match transaction");
+    const result = this.provisioning.complete(transactionId, request.temporary_fabric_removed);
+    this.emitSession(result);
+    return result;
+  }
+  async listDevices() {
+    const nodeIds = await this.controller.listNodes();
+    return Promise.all(nodeIds.map(async (nodeId) => ({ node_id: nodeId, descriptor: await this.controller.describeNode(nodeId) })));
+  }
+  async getDevice(nodeId) {
+    return { node_id: nodeId, descriptor: await this.controller.describeNode(nodeId) };
+  }
+  async removeDevice(nodeId) {
+    return this.controller.removeNode(nodeId);
+  }
+  emitSession(session) {
+    this.emit(session.transaction_id, session.state, session.error);
+  }
+  emit(transactionId, state, error) {
+    const event = {
+      type: "provisioning",
+      transaction_id: transactionId,
+      state,
+      timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+      ...error === void 0 ? {} : { error }
+    };
+    for (const listener of this.listeners) listener(event);
+  }
+};
+
+// packages/webui-bff/src/provisioningRoutes.ts
+async function handleProvisioningRoute(coordinator, method, pathname, requestBody) {
+  if (method === "POST" && pathname === "/api/commissioning/sessions") {
+    return { status: 201, body: await coordinator.createSession(requestBody) };
+  }
+  const sessionMatch = /^\/api\/commissioning\/sessions\/([0-9a-f-]+)(?:\/(claim|thread-attached|window|complete))?$/.exec(pathname);
+  if (sessionMatch) {
+    const transactionId = sessionMatch[1];
+    const action = sessionMatch[2];
+    if (!transactionId) return { status: 404 };
+    if (method === "GET" && action === void 0) return { status: 200, body: coordinator.getSession(transactionId) };
+    if (method === "DELETE" && action === void 0) return { status: 200, body: coordinator.cancel(transactionId) };
+    if (method === "POST" && action === "claim") return { status: 200, body: await coordinator.submitClaim(transactionId, requestBody) };
+    if (method === "POST" && action === "thread-attached") return { status: 200, body: coordinator.threadAttached(transactionId, requestBody) };
+    if (method === "POST" && action === "window") return { status: 200, body: await coordinator.commissionBbbFabric(transactionId, requestBody) };
+    if (method === "POST" && action === "complete") return { status: 200, body: coordinator.complete(transactionId, requestBody) };
+    return { status: 405 };
+  }
+  if (method === "GET" && pathname === "/api/devices") {
+    return { status: 200, body: { devices: await coordinator.listDevices() } };
+  }
+  const deviceMatch = /^\/api\/devices\/(0x[0-9a-fA-F]{1,16})$/.exec(pathname);
+  if (deviceMatch) {
+    const nodeId = deviceMatch[1];
+    if (!nodeId) return { status: 404 };
+    if (method === "GET") return { status: 200, body: await coordinator.getDevice(nodeId) };
+    if (method === "DELETE") return { status: 200, body: await coordinator.removeDevice(nodeId) };
+    return { status: 405 };
+  }
+  return void 0;
+}
+
 // packages/webui-bff/src/main.ts
 if (process.argv[2] === "hash-password") {
-  let p = "";
+  let password = "";
   process.stdin.setEncoding("utf8");
-  process.stdin.on("data", (c) => p += c);
-  process.stdin.on("end", async () => console.log(await hashPassword(p.trimEnd())));
-} else void start();
+  process.stdin.on("data", (chunk) => password += chunk);
+  process.stdin.on("end", async () => console.log(await hashPassword(password.trimEnd())));
+} else {
+  void start();
+}
 async function start() {
-  const c = loadConfig(), log = (0, import_pino.default)({ level: c.LOG_LEVEL, redact: ["password", "*.password"] });
-  const sessions = new SessionStore(c.WEBUI_STATE_DIR, c.WEBUI_SESSION_TTL_S * 1e3, c.WEBUI_SESSION_IDLE_S * 1e3);
+  const config = loadConfig();
+  const log = (0, import_pino.default)({
+    level: config.LOG_LEVEL,
+    redact: [
+      "password",
+      "*.password",
+      "req.headers.authorization",
+      "req.headers.cookie",
+      "claim_secret",
+      "*.claim_secret",
+      "proof",
+      "*.proof",
+      "device_nonce",
+      "*.device_nonce",
+      "grant",
+      "*.grant",
+      "ciphertext",
+      "*.ciphertext",
+      "setup_passcode",
+      "*.setup_passcode",
+      "thread_operational_dataset",
+      "*.thread_operational_dataset"
+    ]
+  });
+  const sessions = new SessionStore(
+    config.WEBUI_STATE_DIR,
+    config.WEBUI_SESSION_TTL_S * 1e3,
+    config.WEBUI_SESSION_IDLE_S * 1e3
+  );
   await sessions.load();
-  const bridge = new MqttBridge(c.MQTT_URL, c.MQTT_USERNAME, c.MQTT_PASSWORD);
+  const bridge = new MqttBridge(config.MQTT_URL, config.MQTT_USERNAME, config.MQTT_PASSWORD);
+  const coordinator = config.PROVISIONING_ENABLED ? new ProvisioningCoordinator(
+    new ProvisioningService(
+      new EncryptedFileDeviceProvisioningRegistry(
+        config.PROVISIONING_REGISTRY_PATH,
+        config.PROVISIONING_REGISTRY_KEY_FILE
+      ),
+      new FileThreadDatasetProvider(config.THREAD_DATASET_PATH),
+      {
+        transactionTtlMs: config.PROVISIONING_TTL_S * 1e3,
+        maxClaimAttempts: config.PROVISIONING_MAX_CLAIM_ATTEMPTS,
+        transactionStore: new FileProvisioningTransactionStore(config.PROVISIONING_TRANSACTION_PATH)
+      }
+    ),
+    new ControllerManagementClient(config.MATTER_SOCKET_PATH)
+  ) : void 0;
   const streams = /* @__PURE__ */ new Map();
+  const mobileOrigins = new Set(config.MOBILE_ALLOWED_ORIGINS.split(",").map((value) => value.trim()).filter(Boolean));
   let eventId = 0;
-  bridge.listeners.add((v) => {
+  const broadcast = (value) => {
     const data = `id: ${++eventId}
 event: message
-data: ${JSON.stringify(v)}
+data: ${JSON.stringify(value)}
 
 `;
-    for (const [res] of streams) if (!res.write(data)) res.destroy();
-  });
+    for (const [response] of streams) {
+      if (!response.write(data)) response.destroy();
+    }
+  };
+  bridge.listeners.add(broadcast);
+  coordinator?.listeners.add(broadcast);
   setInterval(() => {
-    for (const [res, s] of streams) {
-      if (!sessions.hasHash(s.hash)) {
-        res.end();
-        streams.delete(res);
+    for (const [response, session] of streams) {
+      if (!sessions.hasHash(session.hash)) {
+        response.end();
+        streams.delete(response);
         continue;
       }
-      res.write(": ping\n\n");
+      response.write(": ping\n\n");
     }
   }, 15e3).unref();
   const failures = /* @__PURE__ */ new Map();
-  const server = (0, import_node_http.createServer)(async (req, res) => {
+  const server = (0, import_node_http.createServer)(async (request, response) => {
     try {
-      headers(res);
-      const u = new URL(req.url ?? "/", `http://${req.headers.host ?? "localhost"}`);
-      if (u.pathname.startsWith("/api/")) {
-        if (req.method !== "GET" && !originOk(req, c.WEBUI_PUBLIC_ORIGIN)) return json(res, 403, { error: { code: "FORBIDDEN_ORIGIN", message: "Origin rejected" } });
-        const sid = cookie(req, "__Host-sid");
-        const session = sessions.get(sid);
-        if (req.method === "POST" && u.pathname === "/api/login") {
-          const ip = req.socket.remoteAddress ?? "unknown", f = failures.get(ip);
-          if (f && f.until > Date.now()) return json(res, 429, { error: { code: "RATE_LIMITED", message: "Try later" } });
-          const b = LoginRequestSchema.parse(await body(req));
-          const ok = b.username === c.WEBUI_ADMIN_USERNAME && await verifyPassword(b.password, c.WEBUI_ADMIN_PASSWORD_HASH);
-          if (!ok) {
-            const count = (f?.count ?? 0) + 1;
-            failures.set(ip, { count, until: count >= 5 ? Date.now() + 9e5 : 0 });
-            return json(res, 401, { error: { code: "INVALID_CREDENTIALS", message: "Invalid credentials" } });
+      securityHeaders(response);
+      const url = new URL(request.url ?? "/", `http://${request.headers.host ?? "localhost"}`);
+      if (url.pathname.startsWith("/api/")) {
+        const mobileOrigin = applyMobileCors(request, response, mobileOrigins);
+        if (request.method === "OPTIONS") {
+          return mobileOrigin ? json(response, 204, void 0) : json(response, 403, { error: { code: "FORBIDDEN_ORIGIN", message: "Origin rejected" } });
+        }
+        if (request.method === "POST" && url.pathname === "/api/login") {
+          if (!webOriginOk(request, config.WEBUI_PUBLIC_ORIGIN)) {
+            return json(response, 403, { error: { code: "FORBIDDEN_ORIGIN", message: "Origin rejected" } });
           }
-          failures.delete(ip);
-          const created = await sessions.create(b.username);
-          res.setHeader("Set-Cookie", `__Host-sid=${created.sid}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=${c.WEBUI_SESSION_TTL_S}`);
-          return json(res, 200, info(created.session, sessions));
+          const input = LoginRequestSchema.parse(await readBody(request));
+          const created = await authenticate(input, request, failures, config, sessions, "web", response);
+          if (!created) return;
+          response.setHeader("Set-Cookie", `__Host-sid=${created.sid}; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=${config.WEBUI_SESSION_TTL_S}`);
+          return json(response, 200, webSessionInfo(created.session, sessions));
         }
-        if (req.method === "GET" && u.pathname === "/api/session") return session ? json(res, 200, info(session, sessions)) : json(res, 401, { error: { code: "UNAUTHENTICATED", message: "Login required" } });
-        if (req.method === "GET" && u.pathname === "/api/health") return json(res, 200, { ok: true, mqtt_connected: bridge.connected, sse_clients: streams.size });
-        if (!session) return json(res, 401, { error: { code: "UNAUTHENTICATED", message: "Login required" } });
-        if (req.method === "POST" && !sessions.csrfValid(session, header(req, "x-csrf-token"))) return json(res, 403, { error: { code: "CSRF_INVALID", message: "CSRF rejected" } });
-        if (req.method === "POST" && u.pathname === "/api/logout") {
-          await sessions.revoke(sid);
-          res.setHeader("Set-Cookie", "__Host-sid=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0");
-          return json(res, 204, void 0);
+        if (request.method === "POST" && url.pathname === "/api/mobile/login") {
+          if (!mobileOrigin) {
+            return json(response, 403, { error: { code: "FORBIDDEN_ORIGIN", message: "Origin rejected" } });
+          }
+          const input = MobileLoginRequestSchema.parse(await readBody(request));
+          const created = await authenticate(input, request, failures, config, sessions, "mobile", response);
+          if (!created) return;
+          return json(response, 200, {
+            token: created.sid,
+            ...mobileSessionInfo(created.session, sessions)
+          });
         }
-        if (req.method === "POST" && u.pathname === "/api/command") {
-          const input = CommandInputSchema.parse(await body(req));
-          return json(res, 200, await bridge.send(input));
+        const token = bearerToken(request);
+        const sid = cookie(request, "__Host-sid");
+        const session = token ? sessions.get(token, "mobile") : sessions.get(sid, "web");
+        const bearerAuthenticated = Boolean(token && session);
+        if (request.method === "GET" && url.pathname === "/api/session") {
+          if (!session) return json(response, 401, { error: { code: "UNAUTHENTICATED", message: "Login required" } });
+          return json(response, 200, bearerAuthenticated ? mobileSessionInfo(session, sessions) : webSessionInfo(session, sessions));
         }
-        if (req.method === "GET" && u.pathname === "/api/events") {
-          res.writeHead(200, { "Content-Type": "text/event-stream", "Cache-Control": "no-cache, no-transform", "Connection": "keep-alive", "X-Accel-Buffering": "no" });
-          res.write("retry: 3000\n\n");
-          streams.set(res, session);
-          req.on("close", () => streams.delete(res));
+        if (request.method === "GET" && url.pathname === "/api/health") {
+          return json(response, 200, {
+            ok: true,
+            mqtt_connected: bridge.connected,
+            provisioning_enabled: config.PROVISIONING_ENABLED,
+            sse_clients: streams.size
+          });
+        }
+        if (!session) {
+          return json(response, 401, { error: { code: "UNAUTHENTICATED", message: "Login required" } });
+        }
+        if (request.method !== "GET") {
+          const originAccepted = bearerAuthenticated ? mobileOrigin : webOriginOk(request, config.WEBUI_PUBLIC_ORIGIN);
+          if (!originAccepted) {
+            return json(response, 403, { error: { code: "FORBIDDEN_ORIGIN", message: "Origin rejected" } });
+          }
+          if (!bearerAuthenticated && !sessions.csrfValid(session, header(request, "x-csrf-token"))) {
+            return json(response, 403, { error: { code: "CSRF_INVALID", message: "CSRF rejected" } });
+          }
+        }
+        if (request.method === "POST" && url.pathname === "/api/logout") {
+          await sessions.revoke(bearerAuthenticated ? token : sid);
+          if (!bearerAuthenticated) {
+            response.setHeader("Set-Cookie", "__Host-sid=; HttpOnly; Secure; SameSite=Strict; Path=/; Max-Age=0");
+          }
+          return json(response, 204, void 0);
+        }
+        if (coordinator && (url.pathname.startsWith("/api/commissioning/") || url.pathname === "/api/devices" || url.pathname.startsWith("/api/devices/"))) {
+          const requestBody = request.method === "POST" ? await readBody(request) : void 0;
+          const result = await handleProvisioningRoute(
+            coordinator,
+            request.method ?? "GET",
+            url.pathname,
+            requestBody
+          );
+          if (result) return json(response, result.status, result.body);
+        }
+        if (request.method === "POST" && url.pathname === "/api/command") {
+          const input = CommandInputSchema.parse(await readBody(request));
+          return json(response, 200, await bridge.send(input));
+        }
+        if (request.method === "GET" && url.pathname === "/api/events") {
+          response.writeHead(200, {
+            "Content-Type": "text/event-stream",
+            "Cache-Control": "no-cache, no-transform",
+            Connection: "keep-alive",
+            "X-Accel-Buffering": "no"
+          });
+          response.write("retry: 3000\n\n");
+          streams.set(response, session);
+          request.on("close", () => streams.delete(response));
           return;
         }
-        return json(res, 404, { error: { code: "BAD_REQUEST", message: "Not found" } });
+        return json(response, 404, { error: { code: "BAD_REQUEST", message: "Not found" } });
       }
-      await staticFile(c.WEBUI_ROOT, u.pathname, res);
-    } catch (e) {
-      log.warn({ err: e }, "request failed");
-      json(res, 400, { error: { code: "BAD_REQUEST", message: e instanceof Error ? e.message : "Request failed" } });
+      await staticFile(config.WEBUI_ROOT, url.pathname, response);
+    } catch (error) {
+      log.warn({ err: sanitizeError(error) }, "request failed");
+      json(response, provisioningStatus(error), {
+        error: {
+          code: error instanceof ProvisioningServiceError ? error.code : "BAD_REQUEST",
+          message: error instanceof Error ? error.message : "Request failed"
+        }
+      });
     }
   });
-  server.listen(c.WEBUI_PORT, c.WEBUI_BIND, () => log.info({ bind: c.WEBUI_BIND, port: c.WEBUI_PORT }, "webui-bff ready"));
+  server.listen(config.WEBUI_PORT, config.WEBUI_BIND, () => {
+    log.info({ bind: config.WEBUI_BIND, port: config.WEBUI_PORT }, "webui-bff ready");
+  });
   const stop = async () => {
-    for (const [r] of streams) r.end();
+    for (const [response] of streams) response.end();
     server.close();
     await bridge.close();
   };
   process.once("SIGTERM", () => void stop());
   process.once("SIGINT", () => void stop());
 }
-function info(s, store) {
-  return { authenticated: true, username: s.username, csrf_token: s.csrf, expires_at: store.expiresAt(s) };
+async function authenticate(input, request, failures, config, sessions, kind, response) {
+  const ip = request.socket.remoteAddress ?? "unknown";
+  const failure = failures.get(ip);
+  if (failure && failure.until > Date.now()) {
+    json(response, 429, { error: { code: "RATE_LIMITED", message: "Try later" } });
+    return;
+  }
+  const valid = input.username === config.WEBUI_ADMIN_USERNAME && await verifyPassword(input.password, config.WEBUI_ADMIN_PASSWORD_HASH);
+  if (!valid) {
+    const count = (failure?.count ?? 0) + 1;
+    failures.set(ip, { count, until: count >= 5 ? Date.now() + 9e5 : 0 });
+    json(response, 401, { error: { code: "INVALID_CREDENTIALS", message: "Invalid credentials" } });
+    return;
+  }
+  failures.delete(ip);
+  return sessions.create(input.username, kind);
 }
-function header(r, n) {
-  const v = r.headers[n];
-  return Array.isArray(v) ? v[0] : v;
+function webSessionInfo(session, store) {
+  return {
+    authenticated: true,
+    username: session.username,
+    csrf_token: session.csrf,
+    expires_at: store.expiresAt(session)
+  };
 }
-function cookie(r, n) {
-  for (const p of (r.headers.cookie ?? "").split(";")) {
-    const [k, ...v] = p.trim().split("=");
-    if (k === n) return v.join("=");
+function mobileSessionInfo(session, store) {
+  return {
+    authenticated: true,
+    username: session.username,
+    expires_at: store.expiresAt(session)
+  };
+}
+function bearerToken(request) {
+  const value = header(request, "authorization");
+  const match = /^Bearer ([A-Za-z0-9_-]{43,128})$/.exec(value ?? "");
+  return match?.[1];
+}
+function header(request, name) {
+  const value = request.headers[name];
+  return Array.isArray(value) ? value[0] : value;
+}
+function cookie(request, name) {
+  for (const part of (request.headers.cookie ?? "").split(";")) {
+    const [key, ...value] = part.trim().split("=");
+    if (key === name) return value.join("=");
   }
 }
-function originOk(r, o) {
-  return r.headers.origin === o && r.headers.host === new URL(o).host;
+function webOriginOk(request, origin) {
+  return request.headers.origin === origin && request.headers.host === new URL(origin).host;
 }
-async function body(r) {
-  let s = "";
-  for await (const c of r) {
-    s += c;
-    if (Buffer.byteLength(s) > MAX_PAYLOAD_BYTES) throw new Error("Payload too large");
+function applyMobileCors(request, response, allowed) {
+  const origin = request.headers.origin;
+  if (!origin || !allowed.has(origin)) return false;
+  response.setHeader("Access-Control-Allow-Origin", origin);
+  response.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  response.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type, Last-Event-ID");
+  response.setHeader("Access-Control-Max-Age", "600");
+  response.setHeader("Vary", "Origin");
+  return true;
+}
+async function readBody(request) {
+  let value = "";
+  for await (const chunk of request) {
+    value += chunk;
+    if (Buffer.byteLength(value) > MAX_PAYLOAD_BYTES) throw new Error("Payload too large");
   }
-  return JSON.parse(s);
+  return JSON.parse(value);
 }
-function json(r, status, v) {
-  r.statusCode = status;
-  if (v === void 0) return r.end();
-  r.setHeader("Content-Type", "application/json");
-  r.end(JSON.stringify(v));
+function json(response, status, value) {
+  response.statusCode = status;
+  if (value === void 0) return response.end();
+  response.setHeader("Content-Type", "application/json");
+  response.end(JSON.stringify(value));
 }
-function headers(r) {
-  r.setHeader("X-Content-Type-Options", "nosniff");
-  r.setHeader("Referrer-Policy", "no-referrer");
-  r.setHeader("X-Frame-Options", "DENY");
-  r.setHeader("Content-Security-Policy", "default-src 'self'; connect-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'");
+function securityHeaders(response) {
+  response.setHeader("X-Content-Type-Options", "nosniff");
+  response.setHeader("Referrer-Policy", "no-referrer");
+  response.setHeader("X-Frame-Options", "DENY");
+  response.setHeader("Content-Security-Policy", "default-src 'self'; connect-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'");
 }
-async function staticFile(root, path, res) {
-  const base = (0, import_node_path2.resolve)(root), candidate = (0, import_node_path2.resolve)(base, `.${(0, import_node_path2.normalize)(path)}`);
-  if (candidate !== base && !candidate.startsWith(base + import_node_path2.sep)) return json(res, 403, { error: "Forbidden" });
-  let f = path === "/" || !(0, import_node_path2.extname)(candidate) ? (0, import_node_path2.join)(base, "index.html") : candidate;
+function provisioningStatus(error) {
+  if (!(error instanceof ProvisioningServiceError)) return 400;
+  if (error.code === "TRANSACTION_NOT_FOUND" || error.code === "INVALID_DEVICE") return 404;
+  if (error.code === "CLAIM_EXPIRED") return 410;
+  if (error.code === "CLAIM_RATE_LIMITED") return 429;
+  if (error.code === "CLAIM_INVALID" || error.code === "CLAIM_REPLAYED") return 403;
+  if (error.code === "TRANSACTION_CONFLICT" || error.code === "TRANSACTION_STATE_INVALID") return 409;
+  return 400;
+}
+function sanitizeError(error) {
+  if (!(error instanceof Error)) return { name: "Error" };
+  return {
+    name: error.name,
+    message: error instanceof ProvisioningServiceError ? error.code : error.message
+  };
+}
+async function staticFile(root, path, response) {
+  const base = (0, import_node_path3.resolve)(root);
+  const candidate = (0, import_node_path3.resolve)(base, `.${(0, import_node_path3.normalize)(path)}`);
+  if (candidate !== base && !candidate.startsWith(base + import_node_path3.sep)) {
+    return json(response, 403, { error: "Forbidden" });
+  }
+  let file = path === "/" || !(0, import_node_path3.extname)(candidate) ? (0, import_node_path3.join)(base, "index.html") : candidate;
   try {
-    await (0, import_promises2.readFile)(f);
+    await (0, import_promises4.readFile)(file);
   } catch {
-    if ((0, import_node_path2.extname)(path)) return json(res, 404, { error: "Asset not found" });
-    f = (0, import_node_path2.join)(base, "index.html");
+    if ((0, import_node_path3.extname)(path)) return json(response, 404, { error: "Asset not found" });
+    file = (0, import_node_path3.join)(base, "index.html");
   }
-  res.setHeader("Cache-Control", f.includes(`${import_node_path2.sep}assets${import_node_path2.sep}`) ? "public, max-age=31536000, immutable" : "no-store");
-  res.setHeader("Content-Type", mime((0, import_node_path2.extname)(f)));
-  (0, import_node_fs.createReadStream)(f).pipe(res);
+  response.setHeader("Cache-Control", file.includes(`${import_node_path3.sep}assets${import_node_path3.sep}`) ? "public, max-age=31536000, immutable" : "no-store");
+  response.setHeader("Content-Type", mime((0, import_node_path3.extname)(file)));
+  (0, import_node_fs2.createReadStream)(file).pipe(response);
 }
-function mime(e) {
-  return e === ".html" ? "text/html; charset=utf-8" : e === ".js" ? "text/javascript" : e === ".css" ? "text/css" : "application/octet-stream";
+function mime(extension) {
+  return extension === ".html" ? "text/html; charset=utf-8" : extension === ".js" ? "text/javascript" : extension === ".css" ? "text/css" : "application/octet-stream";
 }
 /*! Bundled license information:
 

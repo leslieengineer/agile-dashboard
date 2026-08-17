@@ -12,7 +12,7 @@ Browser HTTPS + HttpOnly cookie
 → Matter Gateway
 ```
 
-## Đã implement và staged
+## Đã implement và deploy
 
 - package `@agile/webui-bff`
 - scrypt admin password hashing
@@ -26,15 +26,27 @@ Browser HTTPS + HttpOnly cookie
 - Cloudflare Tunnel config example cho `dashboard.rhophi.uk`
 - old WebUI 8080 và MQTT WS 9001 vẫn giữ làm rollback
 
-## Chưa cutover
+## Đã cutover public ingress
 
-- chạy installer BFF trên BBB và tạo admin password
-- tạo Cloudflare named Tunnel/DNS route trong account
-- public HTTPS acceptance
+- BFF artifact đã deploy trên BBB
+- Cloudflare named Tunnel/DNS route phục vụ `dashboard.rhophi.uk`
+- public HTTPS, CORS Mobile, login/session restore và authenticated SSE đã smoke-test
+- old WebUI 8080 và MQTT WS 9001 vẫn giữ làm rollback
+
+## Còn lại trước khi đóng migration
+
 - Cloudflare Access MFA
-- xóa public Mosquitto WebSocket 9001
-- xóa `webui-login.txt`
+- xác nhận REST command tới application node thật sau real-controller cutover
+- full reboot acceptance cho web và mobile session paths
+- xóa listener 9001 và `webui-login.txt` theo security review
 
 ## Migration gate
 
 Không xóa listener 9001 cho tới khi login, session persistence, REST command, SSE hai tab và full reboot đều pass qua `https://dashboard.rhophi.uk`.
+
+## Học chi tiết
+
+- [BFF session và auth](../platform-course/02-bff-session-auth.md)
+- [REST/SSE realtime](../platform-course/03-rest-sse-realtime.md)
+- [Mobile bearer/CORS](../platform-course/04-mobile-bearer-cors.md)
+- [Vận hành và rollback](../platform-course/06-van-hanh-su-co.md)

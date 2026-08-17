@@ -14,10 +14,16 @@ export interface RpcResponse {
   error?: { code: string; message: string }
 }
 
+export interface RpcNotification {
+  method: string
+  params: unknown
+}
+
 export type RpcHandler = (method: string, params: unknown) => Promise<unknown>
 
 export class JsonRpcServer {
   private server: Server | undefined
+  private readonly clients = new Set<Socket>()
 
   constructor(
     private readonly socketPath: string,
@@ -38,11 +44,22 @@ export class JsonRpcServer {
   async stop(): Promise<void> {
     const server = this.server
     this.server = undefined
+    for (const client of this.clients) client.destroy()
+    this.clients.clear()
     if (server) await new Promise<void>((resolve) => server.close(() => resolve()))
     await rm(this.socketPath, { force: true })
   }
 
+  notify(method: string, params: unknown): void {
+    const notification: RpcNotification = { method, params }
+    for (const client of this.clients) {
+      if (!client.write(`${JSON.stringify(notification)}\n`)) client.destroy()
+    }
+  }
+
   private handleSocket(socket: Socket): void {
+    this.clients.add(socket)
+    socket.once('close', () => this.clients.delete(socket))
     socket.setEncoding('utf8')
     let buffer = ''
     socket.on('data', (chunk) => {
@@ -78,7 +95,7 @@ export class JsonRpcServer {
     }
   }
 
-  private write(socket: Socket, response: RpcResponse): void {
+  private write(socket: Socket, response: RpcResponse | RpcNotification): void {
     socket.write(`${JSON.stringify(response)}\n`)
   }
 }
