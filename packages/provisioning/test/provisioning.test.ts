@@ -1,4 +1,5 @@
 import {
+  createCipheriv,
   createDecipheriv,
   createPublicKey,
   diffieHellman,
@@ -6,11 +7,17 @@ import {
   hkdfSync,
   type KeyObject,
 } from 'node:crypto'
+import { mkdtemp, readFile, stat, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
   computeClaimProof,
   decodeBase64Url,
   encodeBase64Url,
+  EncryptedFileDeviceProvisioningRegistry,
+  FileProvisioningTransactionStore,
+  FileThreadDatasetProvider,
   InMemoryDeviceProvisioningRegistry,
   ProvisioningService,
   ProvisioningServiceError,
@@ -135,5 +142,51 @@ describe('ProvisioningService', () => {
       device_nonce: encodeBase64Url(Buffer.from('device-nonce-003')),
       proof: encodeBase64Url(Buffer.alloc(32)),
     })).rejects.toMatchObject({ code: 'CLAIM_EXPIRED' })
+  })
+})
+
+describe('file-backed provisioning data', () => {
+  it('decrypts the manufacturing registry and persists non-secret transaction state atomically', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'rhophi-provisioning-'))
+    const master = Buffer.from(Array.from({ length: 32 }, (_, index) => index))
+    const registeredClaimId = encodeBase64Url(Buffer.alloc(16, 0x42))
+    const derived = Buffer.from(hkdfSync('sha256', master, Buffer.from(registeredClaimId), Buffer.from('rhophi-registry-v1'), 32))
+    const nonce = Buffer.alloc(12, 0x24)
+    const cipher = createCipheriv('aes-256-gcm', derived, nonce)
+    cipher.setAAD(Buffer.from(`rhophi-registry-v1:${registeredClaimId}`))
+    const ciphertext = Buffer.concat([cipher.update(JSON.stringify({
+      product_id: 1,
+      claim_secret: encodeBase64Url(secret),
+      setup_passcode: 20202021,
+      discriminator: 3840,
+      device_id: 'device-01',
+    })), cipher.final()])
+    const registryPath = join(directory, 'devices.registry.enc')
+    const keyPath = join(directory, 'registry.key')
+    await writeFile(keyPath, master)
+    await writeFile(registryPath, JSON.stringify({ version: 1, algorithm: 'AES-256-GCM', records: [{
+      claim_id: registeredClaimId,
+      nonce: encodeBase64Url(nonce),
+      ciphertext: encodeBase64Url(ciphertext),
+      authentication_tag: encodeBase64Url(cipher.getAuthTag()),
+    }] }))
+    const registry = new EncryptedFileDeviceProvisioningRegistry(registryPath, keyPath)
+    const record = await registry.findByClaimId(registeredClaimId)
+    expect(record?.claimSecret.equals(secret)).toBe(true)
+
+    const datasetPath = join(directory, 'dataset.hex')
+    await writeFile(datasetPath, '00112233445566778899aabbccddeeff\n')
+    expect((await new FileThreadDatasetProvider(datasetPath).getActiveOperationalDataset()).toString('hex'))
+      .toBe('00112233445566778899aabbccddeeff')
+
+    const transactionPath = join(directory, 'transactions.json')
+    const store = new FileProvisioningTransactionStore(transactionPath)
+    store.save([{ transactionId: '11111111-1111-4111-8111-111111111111', claimId: registeredClaimId,
+      productId: 1, state: 'CLEANUP_PENDING', createdAtMs: 1, expiresAtMs: 2 }])
+    expect(store.load()[0]?.state).toBe('CLEANUP_PENDING')
+    expect((await stat(transactionPath)).mode & 0o777).toBe(0o600)
+    expect(await readFile(transactionPath, 'utf8')).not.toContain('claim_secret')
+    derived.fill(0)
+    master.fill(0)
   })
 })

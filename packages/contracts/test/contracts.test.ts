@@ -1,19 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import {
   CLUSTERS,
-<<<<<<< HEAD
   ClaimProofRequestSchema,
   CommissioningSessionCreateRequestSchema,
   CommissioningWindowRequestSchema,
   EncryptedCommissioningGrantSchema,
-=======
   CommandRequestSchema,
   MobileLoginResponseSchema,
   MobileSessionInfoSchema,
->>>>>>> 0b4bb7ca36fba1a222802515ec3128bac1cb9bf4
   MoveToLevelPayloadSchema,
   ProvisioningStateSchema,
-  CommandRequestSchema,
   normalizeNodeId,
   resolveClusterId,
   resolveCommandId,

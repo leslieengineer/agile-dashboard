@@ -1,5 +1,7 @@
 # Tài liệu Smart Home Gateway
 
+> **LEGACY / NON-AUTHORITATIVE.** Course/snapshot trong repo này dùng học tập. Tài liệu hệ thống authoritative nằm tại `../agile-smart-device/docs/README.md`.
+
 ## Bắt đầu tại đây
 
 Nếu chưa biết hệ thống gồm những gì và dữ liệu chạy ra sao, đọc trước:

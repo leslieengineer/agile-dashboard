@@ -51,19 +51,26 @@ export class ProvisioningCoordinator {
     const request = CommissioningWindowRequestSchema.parse(input)
     this.emitSession(this.provisioning.markWindowOpen(transactionId))
     this.emitSession(this.provisioning.markBbbCommissioning(transactionId))
-    const commissioned = await this.controller.commissionOnNetwork({
-      setup_passcode: request.setup_passcode,
-      discriminator: request.discriminator,
-    })
-    const descriptor = await this.controller.describeNode(commissioned.node_id)
-    const endpoints = (descriptor as { endpoints?: Array<{ endpoint?: number; server_clusters?: number[] }> }).endpoints ?? []
-    const onOffEndpoint = endpoints.find((endpoint) => endpoint.server_clusters?.includes(0x0006))?.endpoint
-    if (onOffEndpoint === undefined) throw new Error('Commissioned node has no OnOff server endpoint')
-    await this.controller.read(commissioned.node_id, onOffEndpoint, 0x0006, 0x0000)
-    await this.controller.subscribe(commissioned.node_id)
-    const session = this.provisioning.markBbbFabricReady(transactionId, commissioned.node_id)
-    this.emitSession(session)
-    return { session, descriptor }
+    try {
+      const commissioned = await this.controller.commissionOnNetwork({
+        setup_passcode: request.setup_passcode,
+        discriminator: request.discriminator,
+      })
+      const descriptor = await this.controller.describeNode(commissioned.node_id)
+      const endpoints = (descriptor as { endpoints?: Array<{ endpoint?: number; server_clusters?: number[] }> }).endpoints ?? []
+      const onOffEndpoint = endpoints.find((endpoint) => endpoint.server_clusters?.includes(0x0006))?.endpoint
+      if (onOffEndpoint === undefined) throw new Error('Commissioned node has no OnOff server endpoint')
+      await this.controller.read(commissioned.node_id, onOffEndpoint, 0x0006, 0x0000)
+      await this.controller.subscribe(commissioned.node_id)
+      const session = this.provisioning.markBbbFabricReady(transactionId, commissioned.node_id)
+      this.emitSession(session)
+      return { session, descriptor }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'BBB Matter commissioning failed'
+      const session = this.provisioning.fail(transactionId, 'BBB_COMMISSION_FAILED', message, true)
+      this.emitSession(session)
+      throw error
+    }
   }
 
   complete(transactionId: string, input: unknown) {

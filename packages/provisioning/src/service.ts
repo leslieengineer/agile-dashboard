@@ -14,6 +14,7 @@ import {
 } from '@agile/contracts'
 import { decodeBase64Url, encodeBase64Url, encryptCommissioningGrant, verifyClaimProof } from './crypto.js'
 import type { DeviceProvisioningRegistry, ThreadDatasetProvider } from './registry.js'
+import type { ProvisioningTransactionSnapshot, ProvisioningTransactionStore } from './transactions.js'
 
 interface Transaction {
   transactionId: string
@@ -41,6 +42,7 @@ export interface ProvisioningServiceOptions {
   transactionTtlMs?: number
   maxClaimAttempts?: number
   now?: () => number
+  transactionStore?: ProvisioningTransactionStore
 }
 
 export class ProvisioningService {
@@ -49,6 +51,7 @@ export class ProvisioningService {
   private readonly ttlMs: number
   private readonly maxClaimAttempts: number
   private readonly now: () => number
+  private readonly transactionStore: ProvisioningTransactionStore | undefined
 
   constructor(
     private readonly registry: DeviceProvisioningRegistry,
@@ -58,6 +61,20 @@ export class ProvisioningService {
     this.ttlMs = options.transactionTtlMs ?? 10 * 60 * 1000
     this.maxClaimAttempts = options.maxClaimAttempts ?? 5
     this.now = options.now ?? Date.now
+    this.transactionStore = options.transactionStore
+    for (const snapshot of this.transactionStore?.load() ?? []) {
+      const transaction: Transaction = {
+        ...snapshot,
+        mobilePublicKey: '',
+        challenge: Buffer.alloc(0),
+        failedAttempts: 0,
+        usedNonces: new Set(),
+      }
+      this.transactions.set(transaction.transactionId, transaction)
+      if (!['COMPLETE', 'CANCELLED', 'EXPIRED'].includes(transaction.state)) {
+        this.activeByClaim.set(transaction.claimId, transaction.transactionId)
+      }
+    }
   }
 
   async createSession(input: CommissioningSessionCreateRequest): Promise<CommissioningSessionCreateResponse> {
@@ -72,8 +89,16 @@ export class ProvisioningService {
     record.claimSecret.fill(0)
 
     const activeId = this.activeByClaim.get(request.claim_id)
-    if (activeId && this.transactions.get(activeId)?.state !== 'CANCELLED') {
-      throw new ProvisioningServiceError('TRANSACTION_CONFLICT', 'A provisioning transaction is already active', true)
+    const active = activeId === undefined ? undefined : this.transactions.get(activeId)
+    if (active && active.state !== 'CANCELLED') {
+      const replaceable = ['CLAIM_CHALLENGE', 'CLAIM_VERIFIED', 'GRANT_ISSUED'].includes(active.state)
+        && active.mobilePublicKey !== request.mobile_ephemeral_public_key
+      if (!replaceable) {
+        throw new ProvisioningServiceError('TRANSACTION_CONFLICT', 'A provisioning transaction is already active', true)
+      }
+      active.state = 'CANCELLED'
+      active.challenge.fill(0)
+      this.activeByClaim.delete(active.claimId)
     }
 
     const now = this.now()
@@ -91,6 +116,7 @@ export class ProvisioningService {
     }
     this.transactions.set(transaction.transactionId, transaction)
     this.activeByClaim.set(transaction.claimId, transaction.transactionId)
+    this.persistTransactions()
 
     return CommissioningSessionCreateResponseSchema.parse({
       transaction_id: transaction.transactionId,
@@ -161,6 +187,7 @@ export class ProvisioningService {
     dataset.fill(0)
     record.claimSecret.fill(0)
     transaction.state = 'GRANT_ISSUED'
+    this.persistTransactions()
 
     return ClaimProofResponseSchema.parse({
       transaction_id: transaction.transactionId,
@@ -179,18 +206,21 @@ export class ProvisioningService {
     const transaction = this.requireActive(transactionId, 'GRANT_ISSUED')
     transaction.temporaryNodeId = temporaryNodeId
     transaction.state = 'TEMP_FABRIC_COMMISSIONED'
+    this.persistTransactions()
     return this.toPublicSession(transaction)
   }
 
   markWindowOpen(transactionId: string): CommissioningSession {
     const transaction = this.requireActive(transactionId, 'TEMP_FABRIC_COMMISSIONED')
     transaction.state = 'WINDOW_OPEN'
+    this.persistTransactions()
     return this.toPublicSession(transaction)
   }
 
   markBbbCommissioning(transactionId: string): CommissioningSession {
     const transaction = this.requireActive(transactionId, 'WINDOW_OPEN')
     transaction.state = 'BBB_FABRIC_COMMISSIONING'
+    this.persistTransactions()
     return this.toPublicSession(transaction)
   }
 
@@ -198,6 +228,7 @@ export class ProvisioningService {
     const transaction = this.requireActive(transactionId, 'BBB_FABRIC_COMMISSIONING')
     transaction.bbbNodeId = bbbNodeId
     transaction.state = 'TEMP_FABRIC_REMOVING'
+    this.persistTransactions()
     return this.toPublicSession(transaction)
   }
 
@@ -212,6 +243,7 @@ export class ProvisioningService {
       this.activeByClaim.delete(transaction.claimId)
       transaction.challenge.fill(0)
     }
+    this.persistTransactions()
     return this.toPublicSession(transaction)
   }
 
@@ -221,6 +253,15 @@ export class ProvisioningService {
     transaction.state = 'CANCELLED'
     transaction.challenge.fill(0)
     this.activeByClaim.delete(transaction.claimId)
+    this.persistTransactions()
+    return this.toPublicSession(transaction)
+  }
+
+  fail(transactionId: string, code: string, message: string, retryable: boolean): CommissioningSession {
+    const transaction = this.requireTransaction(transactionId)
+    transaction.state = code === 'SUBSCRIPTION_FAILED' ? 'SUBSCRIPTION_FAILED' : 'BBB_COMMISSION_FAILED'
+    transaction.error = { code, message: message.slice(0, 256), retryable }
+    this.persistTransactions()
     return this.toPublicSession(transaction)
   }
 
@@ -247,10 +288,40 @@ export class ProvisioningService {
   }
 
   private expireTransaction(transaction: Transaction): void {
-    if (this.now() <= transaction.expiresAtMs || ['COMPLETE', 'CANCELLED', 'EXPIRED'].includes(transaction.state)) return
+    if (this.now() <= transaction.expiresAtMs || ['COMPLETE', 'CANCELLED', 'EXPIRED', 'TEMP_FABRIC_REMOVING', 'CLEANUP_PENDING'].includes(transaction.state)) return
     transaction.state = 'EXPIRED'
     transaction.challenge.fill(0)
     this.activeByClaim.delete(transaction.claimId)
+    this.persistTransactions()
+  }
+
+  private persistTransactions(): void {
+    if (!this.transactionStore) return
+    const resumable = new Set<ProvisioningState>([
+      'TEMP_FABRIC_COMMISSIONED',
+      'WINDOW_OPEN',
+      'BBB_FABRIC_COMMISSIONING',
+      'TEMP_FABRIC_REMOVING',
+      'CLEANUP_PENDING',
+      'BBB_COMMISSION_FAILED',
+      'SUBSCRIPTION_FAILED',
+    ])
+    const snapshots: ProvisioningTransactionSnapshot[] = []
+    for (const transaction of this.transactions.values()) {
+      if (!resumable.has(transaction.state)) continue
+      snapshots.push({
+        transactionId: transaction.transactionId,
+        claimId: transaction.claimId,
+        productId: transaction.productId,
+        state: transaction.state,
+        createdAtMs: transaction.createdAtMs,
+        expiresAtMs: transaction.expiresAtMs,
+        ...(transaction.temporaryNodeId === undefined ? {} : { temporaryNodeId: transaction.temporaryNodeId }),
+        ...(transaction.bbbNodeId === undefined ? {} : { bbbNodeId: transaction.bbbNodeId }),
+        ...(transaction.error === undefined ? {} : { error: transaction.error }),
+      })
+    }
+    this.transactionStore.save(snapshots)
   }
 
   private toPublicSession(transaction: Transaction): CommissioningSession {

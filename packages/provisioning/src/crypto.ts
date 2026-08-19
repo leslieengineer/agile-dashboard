@@ -1,5 +1,6 @@
 import {
   createCipheriv,
+  createDecipheriv,
   createHmac,
   createPublicKey,
   diffieHellman,
@@ -16,6 +17,35 @@ export function decodeBase64Url(value: string): Buffer {
 
 export function encodeBase64Url(value: Uint8Array): string {
   return Buffer.from(value).toString('base64url')
+}
+
+export interface EncryptedRegistryRecord {
+  claim_id: string
+  nonce: string
+  ciphertext: string
+  authentication_tag: string
+}
+
+export function decryptRegistryRecord(masterKey: Uint8Array, record: EncryptedRegistryRecord): unknown {
+  const salt = Buffer.from(record.claim_id, 'utf8')
+  const info = Buffer.from('rhophi-registry-v1', 'utf8')
+  const key = Buffer.from(hkdfSync('sha256', masterKey, salt, info, 32))
+  const decipher = createDecipheriv('aes-256-gcm', key, decodeBase64Url(record.nonce))
+  decipher.setAAD(Buffer.from(`rhophi-registry-v1:${record.claim_id}`, 'utf8'))
+  decipher.setAuthTag(decodeBase64Url(record.authentication_tag))
+  try {
+    const plaintext = Buffer.concat([
+      decipher.update(decodeBase64Url(record.ciphertext)),
+      decipher.final(),
+    ])
+    try {
+      return JSON.parse(plaintext.toString('utf8'))
+    } finally {
+      plaintext.fill(0)
+    }
+  } finally {
+    key.fill(0)
+  }
 }
 
 export function computeClaimProof(secret: Uint8Array, nonce: Uint8Array, challenge: Uint8Array, claimId: Uint8Array): Buffer {

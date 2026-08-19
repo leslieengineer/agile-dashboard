@@ -3,11 +3,21 @@ import { createReadStream } from 'node:fs'
 import { readFile } from 'node:fs/promises'
 import { extname, join, normalize, resolve, sep } from 'node:path'
 import { CommandInputSchema, MobileLoginRequestSchema, LoginRequestSchema, MAX_PAYLOAD_BYTES } from '@agile/contracts'
+import {
+  EncryptedFileDeviceProvisioningRegistry,
+  FileProvisioningTransactionStore,
+  FileThreadDatasetProvider,
+  ProvisioningService,
+  ProvisioningServiceError,
+} from '@agile/provisioning'
 import pino from 'pino'
 import { hashPassword, verifyPassword } from './auth.js'
 import { loadConfig } from './config.js'
 import { MqttBridge } from './bridge.js'
 import { SessionStore, type Session } from './sessions.js'
+import { ControllerManagementClient } from './controllerManagementClient.js'
+import { ProvisioningCoordinator } from './provisioningCoordinator.js'
+import { handleProvisioningRoute } from './provisioningRoutes.js'
 
 if (process.argv[2] === 'hash-password') {
   let password = ''
@@ -22,7 +32,11 @@ async function start() {
   const config = loadConfig()
   const log = pino({
     level: config.LOG_LEVEL,
-    redact: ['password', '*.password', 'req.headers.authorization', 'req.headers.cookie'],
+    redact: [
+      'password', '*.password', 'req.headers.authorization', 'req.headers.cookie',
+      'grant', '*.grant', 'challenge', '*.challenge', 'proof', '*.proof',
+      'thread_operational_dataset', '*.thread_operational_dataset', 'setup_passcode', '*.setup_passcode',
+    ],
   })
   const sessions = new SessionStore(
     config.WEBUI_STATE_DIR,
@@ -34,13 +48,28 @@ async function start() {
   const streams = new Map<ServerResponse, Session>()
   const mobileOrigins = new Set(config.MOBILE_ALLOWED_ORIGINS.split(',').map(value => value.trim()).filter(Boolean))
   let eventId = 0
-
-  bridge.listeners.add(value => {
+  const publishEvent = (value: unknown) => {
     const data = `id: ${++eventId}\nevent: message\ndata: ${JSON.stringify(value)}\n\n`
     for (const [response] of streams) {
       if (!response.write(data)) response.destroy()
     }
-  })
+  }
+  bridge.listeners.add(publishEvent)
+
+  const provisioning = config.PROVISIONING_ENABLED
+    ? new ProvisioningCoordinator(
+        new ProvisioningService(
+          new EncryptedFileDeviceProvisioningRegistry(
+            config.PROVISIONING_REGISTRY_PATH,
+            config.PROVISIONING_REGISTRY_KEY_FILE,
+          ),
+          new FileThreadDatasetProvider(config.THREAD_DATASET_PATH),
+          { transactionStore: new FileProvisioningTransactionStore(config.PROVISIONING_TRANSACTION_PATH) },
+        ),
+        new ControllerManagementClient(config.MATTER_SOCKET_PATH),
+      )
+    : undefined
+  provisioning?.listeners.add(publishEvent)
 
   setInterval(() => {
     for (const [response, session] of streams) {
@@ -117,6 +146,16 @@ async function start() {
           }
         }
 
+        if (provisioning && (url.pathname.startsWith('/api/commissioning/') || url.pathname === '/api/devices' || url.pathname.startsWith('/api/devices/'))) {
+          const route = await handleProvisioningRoute(
+            provisioning,
+            request.method ?? 'GET',
+            url.pathname,
+            request.method === 'POST' ? await readBody(request) : undefined,
+          )
+          if (route) return json(response, route.status, route.body)
+        }
+
         if (request.method === 'POST' && url.pathname === '/api/logout') {
           await sessions.revoke(bearerAuthenticated ? token : sid)
           if (!bearerAuthenticated) {
@@ -145,6 +184,23 @@ async function start() {
       await staticFile(config.WEBUI_ROOT, url.pathname, response)
     } catch (error) {
       log.warn({ err: error }, 'request failed')
+      if (error instanceof ProvisioningServiceError) {
+        const statusByCode: Record<string, number> = {
+          TRANSACTION_NOT_FOUND: 404,
+          TRANSACTION_CONFLICT: 409,
+          CLAIM_EXPIRED: 410,
+          CLAIM_RATE_LIMITED: 429,
+          INVALID_DEVICE: 422,
+          CLAIM_INVALID: 422,
+          CLAIM_REPLAYED: 422,
+          TRANSACTION_STATE_INVALID: 422,
+          BBB_COMMISSION_FAILED: 502,
+          SUBSCRIPTION_FAILED: 502,
+        }
+        return json(response, statusByCode[error.code] ?? 500, {
+          error: { code: error.code, message: error.message, retryable: error.retryable },
+        })
+      }
       json(response, 400, {
         error: { code: 'BAD_REQUEST', message: error instanceof Error ? error.message : 'Request failed' },
       })
